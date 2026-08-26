@@ -16,12 +16,17 @@ st.set_page_config(
 )
 
 # ============================================================
-# AUTENTICAÇÃO SIMPLES
-# ============================================================
-def check_password():
-    """Retorna True se o usuário tiver a senha correta."""
     def password_entered():
-        if st.session_state["password"] == "caf2025" and st.session_state["username"] == "farmacia":
+        # Usa .get() para evitar KeyError caso o estado não exista ou já tenha sido limpo
+        user = st.session_state.get("username", "")
+        pwd = st.session_state.get("password", "")
+        
+        if pwd == "caf2025" and user == "farmacia":
+            st.session_state["password_correct"] = True
+            if "password" in st.session_state:
+                del st.session_state["password"]
+        else:
+            st.session_state["password_correct"] = False
             st.session_state["password_correct"] = True
             del st.session_state["password"]  # Não manter a senha na sessão
         else:
