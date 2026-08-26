@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import pandas as pd
 import numpy as np
 import io
@@ -16,6 +16,10 @@ st.set_page_config(
 )
 
 # ============================================================
+# AUTENTICAÇÃO SIMPLES
+# ============================================================
+def check_password():
+    """Retorna True se o usuário tiver a senha correta."""
     def password_entered():
         # Usa .get() para evitar KeyError caso o estado não exista ou já tenha sido limpo
         user = st.session_state.get("username", "")
@@ -23,12 +27,9 @@ st.set_page_config(
         
         if pwd == "caf2025" and user == "farmacia":
             st.session_state["password_correct"] = True
+            # Limpa a senha por segurança, mas verifica se a chave existe antes
             if "password" in st.session_state:
                 del st.session_state["password"]
-        else:
-            st.session_state["password_correct"] = False
-            st.session_state["password_correct"] = True
-            del st.session_state["password"]  # Não manter a senha na sessão
         else:
             st.session_state["password_correct"] = False
 
