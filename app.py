@@ -27,6 +27,7 @@ def check_password():
         
         if pwd == "caf2025" and user == "farmacia":
             st.session_state["password_correct"] = True
+            st.session_state["logged_in_user"] = user  # <-- ADICIONE ESTA LINHA AQUI
             # Limpa a senha por segurança, mas verifica se a chave existe antes
             if "password" in st.session_state:
                 del st.session_state["password"]
@@ -268,7 +269,7 @@ with st.sidebar:
     LIMITE_EXCESSO_DIAS = st.number_input("Limite Excesso de Estoque (Dias)", min_value=30, max_value=120, value=60, step=5)
     DIAS_MINIMOS_VALIDADE = st.number_input("Dias Mínimos de Validade CAF", min_value=0, max_value=180, value=0, step=15)
     st.markdown("---")
-    st.markdown(f"**Usuário:** {st.session_state['username']}")
+    st.markdown(f"**Usuário:** {st.session_state.get('logged_in_user', 'Desconhecido')}")
     if st.button("Sair"):
         st.session_state.clear()
         st.rerun()
