@@ -94,8 +94,8 @@ def check_password():
         )
 
         st.markdown("<br><br>", unsafe_allow_html=True)
-        st.markdown("<h1 style='text-align: center; color: #1e293b;'>🔐 Acesso Restrito - CAF</h1>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #64748b;'>Controle de Abastecimento Farmacêutico</p>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center; color: #1e293b;'>💊 FarmaHub | Gestão CAF</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #64748b;'>Automação de Pedidos e Controle Inteligente</p>", unsafe_allow_html=True)
         
         col1, col2, col3 = st.columns([1, 1.5, 1])
         with col2:
