@@ -316,7 +316,7 @@ def processar_categoria(df_pedido, df_estoque_caf_disponivel, hoje, DIAS_ALVO, L
 # ============================================================
 # INTERFACE PRINCIPAL DO STREAMLIT
 # ============================================================
-st.title("📦 Sistema de Automação e Análise de Pedidos CAF")
+st.title("📦 Sistema de Automação para Análise de Pedidos")
 st.markdown("Bem-vindo(a)! Faça o upload das planilhas abaixo para gerar a recomendação de envios automaticamente.")
 
 with st.sidebar:
