@@ -18,41 +18,98 @@ st.set_page_config(
 # ============================================================
 # AUTENTICAÇÃO SIMPLES
 # ============================================================
+#def check_password():
+    # """Retorna True se o usuário tiver a senha correta."""
+    # def password_entered():
+        # Usa .get() para evitar KeyError caso o estado não exista ou já tenha sido limpo
+    #     user = st.session_state.get("username", "")
+    #     pwd = st.session_state.get("password", "")
+        
+    #     if pwd == "caf2025" and user == "farmacia":
+    #         st.session_state["password_correct"] = True
+    #         st.session_state["logged_in_user"] = user  # <-- ADICIONE ESTA LINHA AQUI
+    #         # Limpa a senha por segurança, mas verifica se a chave existe antes
+    #         if "password" in st.session_state:
+    #             del st.session_state["password"]
+    #     else:
+    #         st.session_state["password_correct"] = False
+
+    # if "password_correct" not in st.session_state:
+    #     st.markdown("<h1 style='text-align: center;'>🔐 Acesso Restrito - CAF</h1>", unsafe_allow_html=True)
+    #     col1, col2, col3 = st.columns([1,2,1])
+    #     with col2:
+    #         st.text_input("Usuário", key="username")
+    #         st.text_input("Senha", type="password", on_change=password_entered, key="password")
+    #         st.button("Entrar", on_click=password_entered, use_container_width=True)
+    #     return False
+    # elif not st.session_state["password_correct"]:
+    #     st.markdown("<h1 style='text-align: center;'>🔐 Acesso Restrito - CAF</h1>", unsafe_allow_html=True)
+    #     col1, col2, col3 = st.columns([1,2,1])
+    #     with col2:
+    #         st.text_input("Usuário", key="username")
+    #         st.text_input("Senha", type="password", on_change=password_entered, key="password")
+    #         st.button("Entrar", on_click=password_entered, use_container_width=True)
+    #         st.error("😕 Usuário ou senha incorretos.")
+    #     return False
+    # return True
+# ============================================================
+# AUTENTICAÇÃO SIMPLES COM DESIGN PERSONALIZADO
+# ============================================================
 def check_password():
     """Retorna True se o usuário tiver a senha correta."""
     def password_entered():
-        # Usa .get() para evitar KeyError caso o estado não exista ou já tenha sido limpo
         user = st.session_state.get("username", "")
         pwd = st.session_state.get("password", "")
         
         if pwd == "caf2025" and user == "farmacia":
             st.session_state["password_correct"] = True
-            st.session_state["logged_in_user"] = user  # <-- ADICIONE ESTA LINHA AQUI
-            # Limpa a senha por segurança, mas verifica se a chave existe antes
+            st.session_state["logged_in_user"] = user
             if "password" in st.session_state:
                 del st.session_state["password"]
         else:
             st.session_state["password_correct"] = False
 
-    if "password_correct" not in st.session_state:
-        st.markdown("<h1 style='text-align: center;'>🔐 Acesso Restrito - CAF</h1>", unsafe_allow_html=True)
-        col1, col2, col3 = st.columns([1,2,1])
-        with col2:
-            st.text_input("Usuário", key="username")
-            st.text_input("Senha", type="password", on_change=password_entered, key="password")
-            st.button("Entrar", on_click=password_entered, use_container_width=True)
-        return False
-    elif not st.session_state["password_correct"]:
-        st.markdown("<h1 style='text-align: center;'>🔐 Acesso Restrito - CAF</h1>", unsafe_allow_html=True)
-        col1, col2, col3 = st.columns([1,2,1])
-        with col2:
-            st.text_input("Usuário", key="username")
-            st.text_input("Senha", type="password", on_change=password_entered, key="password")
-            st.button("Entrar", on_click=password_entered, use_container_width=True)
-            st.error("😕 Usuário ou senha incorretos.")
-        return False
-    return True
+    if not st.session_state.get("password_correct", False):
+        # Injeção de CSS para o fundo, padrão de medicamentos e estilo do card
+        st.markdown(
+            """
+            <style>
+            /* Cor de fundo base e padrão de marca d'água de medicamentos em SVG */
+            .stApp {
+                background-color: #f0f4f8;
+                background-image: 
+                    linear-gradient(rgba(240, 244, 248, 0.90), rgba(240, 244, 248, 0.90)),
+                    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='%230f766e' fill-opacity='0.18'%3E%3C!-- Cápsula --%3E%3Cpath d='M30,30 L45,15 C50,10 58,10 63,15 C68,20 68,28 63,33 L48,48 C43,53 35,53 30,48 C25,43 25,35 30,30 Z M38,22 L55,39' stroke='%230f766e' stroke-width='3' fill='none'/%3E%3C!-- Comprimido Redondo --%3E%3Ccircle cx='120' cy='40' r='16' stroke='%230f766e' stroke-width='3' fill='none'/%3E%3Cline x1='106' y1='40' x2='134' y2='40' stroke='%230f766e' stroke-width='3'/%3E%3C!-- Frasco de Medicamento --%3E%3Cpath d='M35,110 L55,110 L55,145 C55,147 53,149 51,149 L39,149 C37,149 35,147 35,145 Z M40,104 L50,104 L50,110 L40,110 Z' stroke='%230f766e' stroke-width='3' fill='none'/%3E%3C!-- Cruz Hospitalar --%3E%3Cpath d='M115,110 H125 V120 H135 V130 H125 V140 H115 V130 H105 V120 H115 Z'/%3E%3C/g%3E%3C/svg%3E");
+                background-repeat: repeat;
+            }
 
+            /* Estilização dos inputs para harmonizar com o fundo */
+            .stTextInput > div > div > input {
+                background-color: #ffffff !important;
+                border-radius: 8px;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center; color: #1e293b;'>🔐 Acesso Restrito - CAF</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #64748b;'>Controle de Abastecimento Farmacêutico</p>", unsafe_allow_html=True)
+        
+        col1, col2, col3 = st.columns([1, 1.5, 1])
+        with col2:
+            st.text_input("Usuário", key="username")
+            st.text_input("Senha", type="password", on_change=password_entered, key="password")
+            st.button("Entrar", on_click=password_entered, use_container_width=True, type="primary")
+            
+            # Mostra erro se tentou logar e falhou
+            if "password_correct" in st.session_state and not st.session_state["password_correct"]:
+                st.error("😕 Usuário ou senha incorretos.")
+                
+        return False
+        
+    return True
 if not check_password():
     st.stop()  # Para a execução aqui se não estiver logado
 
