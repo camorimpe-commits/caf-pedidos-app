@@ -14,50 +14,7 @@ st.set_page_config(
     page_icon="📦",
     layout="wide"
 )
-# ============================================================
-# ESTILIZAÇÃO E IMAGEM DE FUNDO DA APLICAÇÃO
-# ============================================================
-def aplicar_estilo_fundo():
-    # URL de imagem de prateleiras farmacêuticas em alta resolução (estilo Clean/Farmácia)
-    # Você pode trocar a URL abaixo por qualquer link direto de imagem de fundo (.jpg / .png)
-    url_imagem_fundo = "https://images.unsplash.com/photo-1586015555751-63bb77f4322a?q=80&w=1920&auto=format&fit=crop"
 
-    st.markdown(
-        f"""
-        <style>
-        /* Aplica o fundo na aplicação inteira */
-        .stApp {{
-            background-image: 
-                linear-gradient(rgba(240, 244, 248, 0.85), rgba(240, 244, 248, 0.85)),
-                url("{url_imagem_fundo}");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }}
-
-        /* Torna os cards e áreas de conteúdo levemente opacos e legíveis */
-        .stApp > header {{
-            background-color: transparent !important;
-        }}
-        
-        /* Deixa o menu lateral (Sidebar) elegante e legível */
-        section[data-testid="stSidebar"] {{
-            background-color: rgba(255, 255, 255, 0.92) !important;
-            backdrop-filter: blur(8px);
-        }}
-
-        /* Garante boa leitura dos textos principais */
-        .stMarkdown, h1, h2, h3, p, label {{
-            color: #1e293b !important;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-# Executa a aplicação do fundo
-aplicar_estilo_fundo()
 # ============================================================
 # AUTENTICAÇÃO SIMPLES
 # ============================================================
