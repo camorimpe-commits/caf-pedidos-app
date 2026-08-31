@@ -104,7 +104,7 @@ def check_password():
 
     if not st.session_state.get("password_correct", False):
         # Injeção de CSS para o fundo, padrão de medicamentos e estilo do card
-        st.markdown(
+        # st.markdown(
             """
         #     <style>
         #     /* Cor de fundo base e padrão de marca d'água de medicamentos em SVG */
