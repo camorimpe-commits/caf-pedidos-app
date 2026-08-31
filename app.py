@@ -14,7 +14,40 @@ st.set_page_config(
     page_icon="📦",
     layout="wide"
 )
+# ============================================================
+# ESTILO E DESIGN DE FUNDO (FARMÁCIA / ALMOXARIFADO)
+# ============================================================
+url_imagem_fundo = "https://images.unsplash.com/photo-1586015555751-63bb77f4322a?q=80&w=1920&auto=format&fit=crop"
 
+st.markdown(
+    f"""
+    <style>
+    /* Fundo com imagem de prateleiras e camada clara para leitura */
+    .stApp {{
+        background-image: 
+            linear-gradient(rgba(240, 244, 248, 0.88), rgba(240, 244, 248, 0.88)),
+            url("{url_imagem_fundo}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }}
+
+    /* Sidebar levemente translúcida com efeito vidro */
+    section[data-testid="stSidebar"] {{
+        background-color: rgba(255, 255, 255, 0.93) !important;
+        backdrop-filter: blur(10px);
+    }}
+
+    /* Inputs bonitos e legíveis */
+    .stTextInput > div > div > input {{
+        background-color: #ffffff !important;
+        border-radius: 8px;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 # ============================================================
 # AUTENTICAÇÃO SIMPLES
 # ============================================================
@@ -73,25 +106,25 @@ def check_password():
         # Injeção de CSS para o fundo, padrão de medicamentos e estilo do card
         st.markdown(
             """
-            <style>
-            /* Cor de fundo base e padrão de marca d'água de medicamentos em SVG */
-            .stApp {
-                background-color: #f0f4f8;
-                background-image: 
-                    linear-gradient(rgba(240, 244, 248, 0.90), rgba(240, 244, 248, 0.90)),
-                    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='%230f766e' fill-opacity='0.18'%3E%3C!-- Cápsula --%3E%3Cpath d='M30,30 L45,15 C50,10 58,10 63,15 C68,20 68,28 63,33 L48,48 C43,53 35,53 30,48 C25,43 25,35 30,30 Z M38,22 L55,39' stroke='%230f766e' stroke-width='3' fill='none'/%3E%3C!-- Comprimido Redondo --%3E%3Ccircle cx='120' cy='40' r='16' stroke='%230f766e' stroke-width='3' fill='none'/%3E%3Cline x1='106' y1='40' x2='134' y2='40' stroke='%230f766e' stroke-width='3'/%3E%3C!-- Frasco de Medicamento --%3E%3Cpath d='M35,110 L55,110 L55,145 C55,147 53,149 51,149 L39,149 C37,149 35,147 35,145 Z M40,104 L50,104 L50,110 L40,110 Z' stroke='%230f766e' stroke-width='3' fill='none'/%3E%3C!-- Cruz Hospitalar --%3E%3Cpath d='M115,110 H125 V120 H135 V130 H125 V140 H115 V130 H105 V120 H115 Z'/%3E%3C/g%3E%3C/svg%3E");
-                background-repeat: repeat;
-            }
+        #     <style>
+        #     /* Cor de fundo base e padrão de marca d'água de medicamentos em SVG */
+        #     .stApp {
+        #         background-color: #f0f4f8;
+        #         background-image: 
+        #             linear-gradient(rgba(240, 244, 248, 0.90), rgba(240, 244, 248, 0.90)),
+        #             url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='%230f766e' fill-opacity='0.18'%3E%3C!-- Cápsula --%3E%3Cpath d='M30,30 L45,15 C50,10 58,10 63,15 C68,20 68,28 63,33 L48,48 C43,53 35,53 30,48 C25,43 25,35 30,30 Z M38,22 L55,39' stroke='%230f766e' stroke-width='3' fill='none'/%3E%3C!-- Comprimido Redondo --%3E%3Ccircle cx='120' cy='40' r='16' stroke='%230f766e' stroke-width='3' fill='none'/%3E%3Cline x1='106' y1='40' x2='134' y2='40' stroke='%230f766e' stroke-width='3'/%3E%3C!-- Frasco de Medicamento --%3E%3Cpath d='M35,110 L55,110 L55,145 C55,147 53,149 51,149 L39,149 C37,149 35,147 35,145 Z M40,104 L50,104 L50,110 L40,110 Z' stroke='%230f766e' stroke-width='3' fill='none'/%3E%3C!-- Cruz Hospitalar --%3E%3Cpath d='M115,110 H125 V120 H135 V130 H125 V140 H115 V130 H105 V120 H115 Z'/%3E%3C/g%3E%3C/svg%3E");
+        #         background-repeat: repeat;
+        #     }
 
-            /* Estilização dos inputs para harmonizar com o fundo */
-            .stTextInput > div > div > input {
-                background-color: #ffffff !important;
-                border-radius: 8px;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
+        #     /* Estilização dos inputs para harmonizar com o fundo */
+        #     .stTextInput > div > div > input {
+        #         background-color: #ffffff !important;
+        #         border-radius: 8px;
+        #     }
+        #     </style>
+        #     """,
+        #     unsafe_allow_html=True
+        # )
 
         st.markdown("<br><br>", unsafe_allow_html=True)
         st.markdown("<h1 style='text-align: center; color: #1e293b;'>💊 FarmaHub | Gestão CAF</h1>", unsafe_allow_html=True)
