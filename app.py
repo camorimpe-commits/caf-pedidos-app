@@ -347,6 +347,7 @@ def processar_categoria(
         lote_primeiro_vencer=("lote", "first"),
         validade_primeiro_vencer=("validade_dt", "first"),
         produto_caf=("produto", "first"),
+        fator_embalagem=("fator_embalagem", "first"), # linha adicionada em 03.09.2026
     )
 
     df_base = df_base.merge(estoque_caf_resumo, on=chaves_merge, how="left")
@@ -354,6 +355,7 @@ def processar_categoria(
     df_base["lote_primeiro_vencer"] = df_base["lote_primeiro_vencer"].fillna(
         "SEM LOTE DISPONÍVEL"
     )
+    df_base["fator_embalagem"] = df_base["fator_embalagem"].fillna(1) # Linha adicionada em 03.09.2026
 
     df_base["qtd_autorizada_caf"] = (
         np.minimum(
