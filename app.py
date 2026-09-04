@@ -117,7 +117,27 @@ def check_password():
 
 if not check_password():
     st.stop()
+    
+# TERMOS DE USO E SEGURANÇA (LGPD)
+# ============================================================
+st.sidebar.title("🔒 Segurança & Termos")
 
+with st.sidebar.expander("Termos de Uso e LGPD"):
+    st.markdown("""
+    **Uso Restrito:** Sistema exclusivo para profissionais autorizados da CAF.
+    
+    **Privacidade (LGPD):** Esta aplicação não coleta dados pessoais de pacientes. As planilhas inseridas são processadas apenas temporariamente durante a sua sessão.
+    
+    **Responsabilidade:** Os cálculos de envio e FEFO são de suporte à decisão, cabendo a validação técnica ao farmacêutico.
+    """)
+
+aceite = st.sidebar.checkbox("Declaro que li e concordo com os termos.")
+
+if not aceite:
+    st.warning("⚠️ Por favor, confirme o aceite dos Termos de Uso na barra lateral para prosseguir.")
+    st.stop()  # Interrompe a execução do restante do app até que o usuário marque a caixa
+
+    
 # ============================================================
 # PARÂMETROS E CONSTANTES
 # ============================================================
