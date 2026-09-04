@@ -40,6 +40,10 @@ A planilha de pedido precisa conter, após a padronização dos nomes das coluna
 - `produto`
 - `cm`
 - `estoque`
+
+- ## 📄 Licença e Direitos Autorais
+
+Este projeto está sob uma **Licença Proprietária**. Todos os direitos estão reservados a **Cristiano Amorim**. O acesso ao código e ao link da aplicação é restrito e não pode ser copiado ou reutilizado sem autorização expressa. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 - opcionalmente `codigo_produto`
 - opcionalmente `demanda_nao_atendida`
 
