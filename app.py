@@ -501,7 +501,7 @@ with col1:
 
 with col2:
     st.subheader("2. Planilhas de Pedido")
-    st.info("Pode enviar todos de uma vez (Clínico, Saúde Mental, MMH). O sistema identificará pelo nome do arquivo.")
+    st.info("Pode enviar todos de uma vez (Medicamento, Saúde Mental, MMH). O sistema identificará pelo nome do arquivo.")
     files_pedidos = st.file_uploader("Selecione as planilhas de pedido", type=['csv', 'xls', 'xlsx'], accept_multiple_files=True)
 
 if st.button("🚀 Processar Pedidos", use_container_width=True, type="primary"):
