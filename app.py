@@ -13,6 +13,7 @@ st.set_page_config(
     page_icon="📦",
     layout="wide"
 )
+
 # ============================================================
 # ESTILO E DESIGN DE FUNDO (FARMÁCIA / ALMOXARIFADO)
 # ============================================================
@@ -21,9 +22,8 @@ url_imagem_fundo = "https://images.unsplash.com/photo-1586015555751-63bb77f4322a
 st.markdown(
     f"""
     <style>
-    /* Fundo com imagem de prateleiras e camada clara para leitura */
     .stApp {{
-        background-image: 
+        background-image:
             linear-gradient(rgba(240, 244, 248, 0.88), rgba(240, 244, 248, 0.88)),
             url("{url_imagem_fundo}");
         background-size: cover;
@@ -32,13 +32,11 @@ st.markdown(
         background-attachment: fixed;
     }}
 
-    /* Sidebar levemente translúcida com efeito vidro */
     section[data-testid="stSidebar"] {{
         background-color: rgba(255, 255, 255, 0.93) !important;
         backdrop-filter: blur(10px);
     }}
 
-    /* Inputs bonitos e legíveis */
     .stTextInput > div > div > input {{
         background-color: #ffffff !important;
         border-radius: 8px;
@@ -47,42 +45,94 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 # ============================================================
-# AUTENTICAÇÃO
+# AUTENTICAÇÃO INDIVIDUAL / AUDITORIA
 # ============================================================
+# Os usuários e senhas NÃO ficam gravados no código.
+# Configure-os em Settings > Secrets no Streamlit Cloud.
+#
+# Exemplo de Secrets:
+#
+# [usuarios]
+# "16805" = "SENHA_GABRIELLE"
+# "4159" = "SENHA_CLAUDIA"
+# "9559" = "SENHA_ANDREZA"
+# "180681" = "SENHA_CRISTIANO"
+#
+# O campo de login usa CRF/ADM como identificador.
+# A senha deve ser definida individualmente por cada usuário.
+
+USUARIOS = {
+    "16805": {
+        "nome": "Gabrielle Moura",
+        "registro": "CRF: 16805",
+    },
+    "4159": {
+        "nome": "Cláudia Galvão",
+        "registro": "CRF: 4159",
+    },
+    "9559": {
+        "nome": "Andreza Ferreira",
+        "registro": "CRF: 9559",
+    },
+    "180681": {
+        "nome": "Cristiano Amorim",
+        "registro": "ADM: 180681",
+    },
+}
+
+
 def check_password():
-    """Retorna True se o usuário tiver as credenciais configuradas em Secrets."""
+    """Autenticação individual usando Secrets e registra o usuário da sessão."""
 
     try:
-        usuario_correto = st.secrets["usuario"]
-        senha_correta = st.secrets["senha"]
+        senhas = st.secrets["usuarios"]
     except Exception:
-        st.error("⚠️ As credenciais não foram configuradas no Streamlit Secrets.")
+        st.error("⚠️ As senhas individuais não foram configuradas no Streamlit Secrets.")
         st.info(
-            "Configure as chaves 'usuario' e 'senha' em Settings → Secrets "
-            "no Streamlit Cloud."
+            "Em Settings → Secrets, crie a seção [usuarios] e cadastre uma senha "
+            "para cada CRF/ADM. Veja o exemplo no código."
         )
         return False
 
     def password_entered():
-        user = st.session_state.get("username", "").strip()
-        pwd = st.session_state.get("password", "")
+        identificador = st.session_state.get("login_usuario", "").strip()
+        senha = st.session_state.get("login_senha", "")
 
-        if user == usuario_correto and pwd == senha_correta:
+        if identificador not in USUARIOS:
+            st.session_state["password_correct"] = False
+            return
+
+        try:
+            senha_correta = str(senhas[identificador])
+        except Exception:
+            st.session_state["password_correct"] = False
+            return
+
+        if senha == senha_correta:
+            dados_usuario = USUARIOS[identificador]
+
             st.session_state["password_correct"] = True
-            st.session_state["logged_in_user"] = user
-            st.session_state.pop("password", None)
+            st.session_state["logged_in_user"] = dados_usuario["nome"]
+            st.session_state["logged_in_registro"] = dados_usuario["registro"]
+            st.session_state["logged_in_id"] = identificador
+
+            # Não manter a senha na sessão depois da autenticação.
+            st.session_state.pop("login_senha", None)
         else:
             st.session_state["password_correct"] = False
 
     if not st.session_state.get("password_correct", False):
         st.markdown("<br><br>", unsafe_allow_html=True)
+
         st.markdown(
             "<h1 style='text-align: center; color: #1e293b;'>"
             "💊 FarmaHub | Gestão CAF"
             "</h1>",
             unsafe_allow_html=True,
         )
+
         st.markdown(
             "<p style='text-align: center; color: #64748b;'>"
             "Automação de Pedidos e Controle Inteligente"
@@ -93,13 +143,19 @@ def check_password():
         col1, col2, col3 = st.columns([1, 1.5, 1])
 
         with col2:
-            st.text_input("Usuário", key="username")
+            st.text_input(
+                "CRF / ADM",
+                key="login_usuario",
+                placeholder="Ex.: 16805",
+            )
+
             st.text_input(
                 "Senha",
                 type="password",
                 on_change=password_entered,
-                key="password",
+                key="login_senha",
             )
+
             st.button(
                 "Entrar",
                 on_click=password_entered,
@@ -108,7 +164,7 @@ def check_password():
             )
 
             if st.session_state.get("password_correct") is False:
-                st.error("😕 Usuário ou senha incorretos.")
+                st.error("😕 CRF/ADM ou senha incorretos.")
 
         return False
 
@@ -117,35 +173,45 @@ def check_password():
 
 if not check_password():
     st.stop()
-    
+
+# ============================================================
 # TERMOS DE USO E SEGURANÇA (LGPD)
 # ============================================================
 st.sidebar.title("🔒 Segurança & Termos")
 
 with st.sidebar.expander("Termos de Uso e LGPD"):
-    st.markdown("""
-    **Uso Restrito:** Sistema exclusivo para profissionais autorizados da CAF.
-    
-    **Privacidade (LGPD):** Esta aplicação não coleta dados pessoais de pacientes. As planilhas inseridas são processadas apenas temporariamente durante a sua sessão.
-    
-    **Responsabilidade:** Os cálculos de envio e FEFO são de suporte à decisão, cabendo a validação técnica ao farmacêutico.
-    """)
+    st.markdown(
+        """
+        **Uso Restrito:** Sistema exclusivo para profissionais autorizados da CAF.
+
+        **Privacidade (LGPD):** Esta aplicação não coleta dados pessoais de pacientes.
+        As planilhas inseridas são processadas apenas temporariamente durante a sua sessão.
+
+        **Responsabilidade:** Os cálculos de envio e FEFO são de suporte à decisão,
+        cabendo a validação técnica ao farmacêutico.
+
+        **Auditoria:** Cada recomendação exportada identifica o profissional que realizou
+        o login e executou a análise.
+        """
+    )
 
 aceite = st.sidebar.checkbox("Declaro que li e concordo com os termos.")
 
 if not aceite:
-    st.warning("⚠️ Por favor, confirme o aceite dos Termos de Uso na barra lateral para prosseguir.")
-    st.stop()  # Interrompe a execução do restante do app até que o usuário marque a caixa
+    st.warning(
+        "⚠️ Por favor, confirme o aceite dos Termos de Uso na barra lateral para prosseguir."
+    )
+    st.stop()
 
-    
 # ============================================================
 # PARÂMETROS E CONSTANTES
 # ============================================================
 CATEGORIAS_KEYWORDS = {
     "Saude_Mental": ["saude mental", "saude_mental", "saudemental"],
     "MMH": ["mmh"],
-    "Medicamento": ["Medicamento", "medicamento","Medicamentos","medicamentos"],
+    "Medicamento": ["Medicamento", "medicamento", "Medicamentos", "medicamentos"],
 }
+
 ORDEM_PROCESSAMENTO = ["Saude_Mental", "MMH", "Medicamentos"]
 DIAS_MES = 30
 
@@ -155,54 +221,98 @@ DIAS_MES = 30
 @st.cache_data(show_spinner=False)
 def ler_arquivo_seguro(file_obj, filename):
     try:
-        if filename.endswith(('.xls', '.xlsx')):
+        if filename.endswith((".xls", ".xlsx")):
             return pd.read_excel(file_obj)
         else:
-            # Tenta UTF-8 primeiro
             try:
                 file_obj.seek(0)
-                return pd.read_csv(file_obj, sep=';', encoding='utf-8')
+                return pd.read_csv(file_obj, sep=";", encoding="utf-8")
             except UnicodeDecodeError:
                 file_obj.seek(0)
-                return pd.read_csv(file_obj, sep=';', encoding='latin-1')
+                return pd.read_csv(file_obj, sep=";", encoding="latin-1")
     except Exception as e:
         st.error(f"Erro ao ler o arquivo {filename}: {e}")
         return None
+
 
 def normalizar_texto(texto):
     texto = unicodedata.normalize("NFKD", str(texto))
     texto = texto.encode("ascii", "ignore").decode("utf-8")
     return texto.lower()
 
+
 def padronizar_colunas(df):
-    df.columns = df.columns.astype(str).str.strip().str.lower().str.replace(" ", "_", regex=False)
+    df = df.copy()
+    df.columns = (
+        df.columns.astype(str)
+        .str.strip()
+        .str.lower()
+        .str.replace(" ", "_", regex=False)
+    )
     df = df.loc[:, ~df.columns.str.contains("^unnamed", case=False)]
     return df
+
 
 def numero_br_para_float(serie):
     if pd.api.types.is_numeric_dtype(serie):
         return pd.to_numeric(serie, errors="coerce").fillna(0).clip(lower=0)
+
     return pd.to_numeric(
-        serie.astype(str).str.strip().str.replace(".", "", regex=False).str.replace(",", ".", regex=False),
-        errors="coerce"
+        serie.astype(str)
+        .str.strip()
+        .str.replace(".", "", regex=False)
+        .str.replace(",", ".", regex=False),
+        errors="coerce",
     ).fillna(0).clip(lower=0)
+
 
 def limpar_texto_chave(valor):
     if pd.isna(valor):
         return ""
+
     valor = str(valor).strip().upper()
     valor = unicodedata.normalize("NFKD", valor)
     valor = valor.encode("ascii", "ignore").decode("utf-8")
     valor = re.sub(r"\s+", " ", valor)
     return valor
 
+
 def limpar_codigo_produto(valor):
     if pd.isna(valor):
         return ""
+
     valor = str(valor).strip()
     valor = re.sub(r"\.0$", "", valor)
     valor = re.sub(r"\D", "", valor)
     return valor
+
+
+def encontrar_coluna_programa(df):
+    """Localiza variações comuns da coluna Programa de Saúde."""
+
+    candidatos = [
+        "programa_de_saude",
+        "programa_saude",
+        "programa",
+        "programa_de_saude_nome",
+    ]
+
+    for coluna in candidatos:
+        if coluna in df.columns:
+            return coluna
+
+    # Busca mais flexível para nomes como "Programa de Saúde"
+    for coluna in df.columns:
+        chave = limpar_texto_chave(coluna).replace(" ", "_")
+        if chave in {
+            "PROGRAMA_DE_SAUDE",
+            "PROGRAMA_SAUDE",
+            "PROGRAMA",
+        }:
+            return coluna
+
+    return None
+
 
 def calcular_recomendacao_e_qtd(row, DIAS_ALVO, LIMITE_EXCESSO_DIAS):
     cm = row["cm"]
@@ -237,6 +347,49 @@ def calcular_recomendacao_e_qtd(row, DIAS_ALVO, LIMITE_EXCESSO_DIAS):
     return 0, "ANALISAR"
 
 
+def ajustar_qtd_por_fator_embalagem(qtd, fator, estoque_disponivel):
+    """
+    Ajusta a quantidade autorizada para múltiplos inteiros do fator de embalagem.
+
+    Exemplo:
+      fator 50 + qtd 17947 -> 17950
+      fator 100 + qtd 1535 -> 1600
+
+    Regra de segurança:
+      - nunca ultrapassa a quantidade recomendada;
+      - nunca ultrapassa o estoque CAF;
+      - quando o estoque não comporta um pacote completo, arredonda o disponível
+        para baixo para não autorizar quantidade inexistente.
+    """
+
+    qtd = max(0, int(np.floor(float(qtd or 0))))
+    estoque_disponivel = max(0, int(np.floor(float(estoque_disponivel or 0))))
+
+    try:
+        fator = int(round(float(fator)))
+    except Exception:
+        fator = 1
+
+    if fator <= 0:
+        fator = 1
+
+    if qtd <= 0 or estoque_disponivel <= 0:
+        return 0
+
+    # Primeiro limita ao que realmente existe na CAF.
+    qtd_base = min(qtd, estoque_disponivel)
+
+    # Arredonda para cima em relação à embalagem.
+    qtd_arredondada = int(np.ceil(qtd_base / fator) * fator)
+
+    # Se o arredondamento ultrapassar o estoque disponível,
+    # só podem ser autorizadas embalagens completas dentro do estoque.
+    if qtd_arredondada > estoque_disponivel:
+        qtd_arredondada = int(np.floor(estoque_disponivel / fator) * fator)
+
+    return max(0, qtd_arredondada)
+
+
 def classificar_atendimento_caf(row):
     qtd_recomendada = row["qtd_recomendada_envio"]
     estoque_caf = row["estoque_caf_total"]
@@ -260,6 +413,7 @@ def processar_categoria(
     hoje,
     DIAS_ALVO,
     LIMITE_EXCESSO_DIAS,
+    usuario_analisador,
 ):
     df = padronizar_colunas(df_pedido)
 
@@ -273,11 +427,32 @@ def processar_categoria(
     if "demanda_nao_atendida" not in df.columns:
         df["demanda_nao_atendida"] = 0
 
+    # Programa de Saúde: preserva a informação da planilha de pedido.
+    coluna_programa = encontrar_coluna_programa(df)
+
+    if coluna_programa:
+        df["programa_de_saude"] = (
+            df[coluna_programa]
+            .fillna("")
+            .astype(str)
+            .str.strip()
+            .replace("", "Não informado")
+        )
+    else:
+        df["programa_de_saude"] = "Não informado"
+
     df["cm"] = numero_br_para_float(df["cm"])
     df["estoque"] = numero_br_para_float(df["estoque"])
     df["demanda_nao_atendida"] = numero_br_para_float(df["demanda_nao_atendida"])
 
-    chaves_agrupamento = ["unidade", "tipo_produto", "produto"]
+    # Mantém o agrupamento original, acrescentando Programa de Saúde quando
+    # a informação existir, evitando misturar programas diferentes.
+    chaves_agrupamento = [
+        "unidade",
+        "tipo_produto",
+        "produto",
+        "programa_de_saude",
+    ]
 
     if "codigo_produto" in df.columns:
         chaves_agrupamento = [
@@ -285,6 +460,7 @@ def processar_categoria(
             "tipo_produto",
             "codigo_produto",
             "produto",
+            "programa_de_saude",
         ]
 
     df_base = df.groupby(chaves_agrupamento, as_index=False).agg(
@@ -294,19 +470,24 @@ def processar_categoria(
     )
 
     fator_alvo = DIAS_ALVO / DIAS_MES
+
     df_base["estoque_alvo"] = df_base["cm"] * fator_alvo
+
     df_base["necessidade_bruta"] = (
         df_base["estoque_alvo"]
         + df_base["demanda_nao_atendida"]
         - df_base["estoque"]
     )
+
     df_base["cobertura_dias"] = np.where(
         df_base["cm"] > 0,
         (df_base["estoque"] / df_base["cm"]) * DIAS_MES,
         0,
     )
 
-    df_base[["qtd_recomendada_envio", "recomendacao_unidade"]] = df_base.apply(
+    df_base[
+        ["qtd_recomendada_envio", "recomendacao_unidade"]
+    ] = df_base.apply(
         lambda r: calcular_recomendacao_e_qtd(
             r,
             DIAS_ALVO,
@@ -319,6 +500,7 @@ def processar_categoria(
     df_base["tipo_produto_chave"] = df_base["tipo_produto"].apply(
         limpar_texto_chave
     )
+
     df_estoque_caf_disponivel["tipo_produto_chave"] = (
         df_estoque_caf_disponivel["tipo_produto"].apply(limpar_texto_chave)
     )
@@ -330,6 +512,7 @@ def processar_categoria(
         df_base["codigo_produto_chave"] = df_base["codigo_produto"].apply(
             limpar_codigo_produto
         )
+
         df_estoque_caf_disponivel["codigo_produto_chave"] = (
             df_estoque_caf_disponivel["codigo_produto"].apply(
                 limpar_codigo_produto
@@ -344,16 +527,21 @@ def processar_categoria(
         mask_caf = df_estoque_caf_disponivel["codigo_produto_chave"] == ""
         df_estoque_caf_disponivel.loc[
             mask_caf, "codigo_produto_chave"
-        ] = df_estoque_caf_disponivel.loc[mask_caf, "produto"].apply(
+        ] = df_estoque_caf_disponivel.loc[
+            mask_caf, "produto"
+        ].apply(limpar_texto_chave)
+
+        chaves_merge = ["tipo_produto_chave", "codigo_produto_chave"]
+
+    else:
+        df_base["produto_chave"] = df_base["produto"].apply(
             limpar_texto_chave
         )
 
-        chaves_merge = ["tipo_produto_chave", "codigo_produto_chave"]
-    else:
-        df_base["produto_chave"] = df_base["produto"].apply(limpar_texto_chave)
         df_estoque_caf_disponivel["produto_chave"] = (
             df_estoque_caf_disponivel["produto"].apply(limpar_texto_chave)
         )
+
         chaves_merge = ["tipo_produto_chave", "produto_chave"]
 
     df_estoque_caf_disponivel = df_estoque_caf_disponivel.sort_values(
@@ -367,28 +555,46 @@ def processar_categoria(
         lote_primeiro_vencer=("lote", "first"),
         validade_primeiro_vencer=("validade_dt", "first"),
         produto_caf=("produto", "first"),
-        fator_embalagem=("fator_embalagem", "first"), # linha adicionada em 03.09.2026
+        fator_embalagem=("fator_embalagem", "first"),
     )
 
-    df_base = df_base.merge(estoque_caf_resumo, on=chaves_merge, how="left")
+    df_base = df_base.merge(
+        estoque_caf_resumo,
+        on=chaves_merge,
+        how="left",
+    )
+
     df_base["estoque_caf_total"] = df_base["estoque_caf_total"].fillna(0)
-    df_base["lote_primeiro_vencer"] = df_base["lote_primeiro_vencer"].fillna(
-        "SEM LOTE DISPONÍVEL"
-    )
-    df_base["fator_embalagem"] = df_base["fator_embalagem"].fillna(1) # Linha adicionada em 03.09.2026
 
-    df_base["qtd_autorizada_caf"] = (
-        np.minimum(
-            df_base["qtd_recomendada_envio"],
-            df_base["estoque_caf_total"],
-        )
-        .clip(lower=0)
-        .astype(int)
+    df_base["lote_primeiro_vencer"] = df_base[
+        "lote_primeiro_vencer"
+    ].fillna("SEM LOTE DISPONÍVEL")
+
+    df_base["fator_embalagem"] = (
+        pd.to_numeric(df_base["fator_embalagem"], errors="coerce")
+        .fillna(1)
+        .clip(lower=1)
     )
+
+    # ========================================================
+    # NOVA REGRA: AUTORIZAÇÃO EM MÚLTIPLOS DO FATOR DE EMBALAGEM
+    # ========================================================
+    df_base["qtd_autorizada_caf"] = df_base.apply(
+        lambda r: ajustar_qtd_por_fator_embalagem(
+            r["qtd_recomendada_envio"],
+            r["fator_embalagem"],
+            r["estoque_caf_total"],
+        ),
+        axis=1,
+    ).astype(int)
+
     df_base["status_atendimento_caf"] = df_base.apply(
         classificar_atendimento_caf,
         axis=1,
     )
+
+    # Identificação do profissional responsável pela análise.
+    df_base["Pedido analisado por"] = usuario_analisador
 
     linhas_lotes_fefo = []
 
@@ -398,10 +604,15 @@ def processar_categoria(
         if qtd_restante <= 0:
             continue
 
-        filtro = pd.Series(True, index=df_estoque_caf_disponivel.index)
+        filtro = pd.Series(
+            True,
+            index=df_estoque_caf_disponivel.index,
+        )
 
         for chave in chaves_merge:
-            filtro &= df_estoque_caf_disponivel[chave] == item[chave]
+            filtro &= (
+                df_estoque_caf_disponivel[chave] == item[chave]
+            )
 
         lotes_item = df_estoque_caf_disponivel[filtro].sort_values(
             "validade_dt"
@@ -412,7 +623,15 @@ def processar_categoria(
                 break
 
             saldo_lote = float(lote["saldo_lote_caf"])
-            qtd_separar = int(np.floor(min(qtd_restante, saldo_lote)))
+
+            qtd_separar = int(
+                np.floor(
+                    min(
+                        qtd_restante,
+                        saldo_lote,
+                    )
+                )
+            )
 
             if qtd_separar <= 0:
                 continue
@@ -427,7 +646,14 @@ def processar_categoria(
                         "codigo_produto",
                         lote.get("codigo_produto", ""),
                     ),
-                    "produto": item.get("produto", lote.get("produto", "")),
+                    "produto": item.get(
+                        "produto",
+                        lote.get("produto", ""),
+                    ),
+                    "programa_de_saude": item.get(
+                        "programa_de_saude",
+                        "Não informado",
+                    ),
                     "lote": lote.get("lote", ""),
                     "validade": validade_lote,
                     "dias_para_vencer": (
@@ -436,11 +662,20 @@ def processar_categoria(
                         else np.nan
                     ),
                     "saldo_lote_caf": saldo_lote,
+                    "fator_embalagem": item.get(
+                        "fator_embalagem",
+                        1,
+                    ),
                     "qtd_separar_lote": qtd_separar,
                     "qtd_recomendada_envio": item.get(
-                        "qtd_recomendada_envio", 0
+                        "qtd_recomendada_envio",
+                        0,
                     ),
-                    "qtd_autorizada_caf": item.get("qtd_autorizada_caf", 0),
+                    "qtd_autorizada_caf": item.get(
+                        "qtd_autorizada_caf",
+                        0,
+                    ),
+                    "Pedido analisado por": usuario_analisador,
                     "_idx_lote_estoque": idx_lote,
                 }
             )
@@ -450,181 +685,555 @@ def processar_categoria(
     df_lotes_fefo = pd.DataFrame(linhas_lotes_fefo)
 
     if not df_lotes_fefo.empty:
-        consumo_por_idx = df_lotes_fefo.groupby("_idx_lote_estoque")[
-            "qtd_separar_lote"
-        ].sum()
+        consumo_por_idx = df_lotes_fefo.groupby(
+            "_idx_lote_estoque"
+        )["qtd_separar_lote"].sum()
 
         for idx_lote, qtd_consumida in consumo_por_idx.items():
             novo_saldo = (
-                df_estoque_caf_disponivel.loc[idx_lote, "saldo_lote_caf"]
+                df_estoque_caf_disponivel.loc[
+                    idx_lote,
+                    "saldo_lote_caf",
+                ]
                 - qtd_consumida
             )
-            df_estoque_caf_disponivel.loc[idx_lote, "saldo_lote_caf"] = max(
-                0.0, novo_saldo
-            )
 
-        df_lotes_fefo = df_lotes_fefo.drop(columns=["_idx_lote_estoque"])
+            df_estoque_caf_disponivel.loc[
+                idx_lote,
+                "saldo_lote_caf",
+            ] = max(0.0, novo_saldo)
+
+        df_lotes_fefo = df_lotes_fefo.drop(
+            columns=["_idx_lote_estoque"]
+        )
+
         df_lotes_fefo["validade"] = pd.to_datetime(
-            df_lotes_fefo["validade"], errors="coerce"
+            df_lotes_fefo["validade"],
+            errors="coerce",
         ).dt.strftime("%d/%m/%Y")
 
     df_base["validade_primeiro_vencer"] = pd.to_datetime(
-        df_base["validade_primeiro_vencer"], errors="coerce"
+        df_base["validade_primeiro_vencer"],
+        errors="coerce",
     ).dt.strftime("%d/%m/%Y")
 
-    return df_base, df_lotes_fefo, df_estoque_caf_disponivel
+    return (
+        df_base,
+        df_lotes_fefo,
+        df_estoque_caf_disponivel,
+    )
 
 
 # ============================================================
 # INTERFACE PRINCIPAL DO STREAMLIT
 # ============================================================
 st.title("📦 Sistema de Automação para Análise de Pedidos")
-st.markdown("Bem-vindo(a)! Faça o upload das planilhas abaixo para gerar a recomendação de envios automaticamente.")
+st.markdown(
+    "Bem-vindo(a)! Faça o upload das planilhas abaixo para gerar "
+    "a recomendação de envios automaticamente."
+)
 
 with st.sidebar:
     st.header("⚙️ Configurações")
+
     st.markdown("Ajuste os parâmetros de cálculo:")
-    DIAS_ALVO = st.number_input("Dias Alvo de Estoque (Cobertura)", min_value=15, max_value=90, value=45, step=5)
-    LIMITE_EXCESSO_DIAS = st.number_input("Limite Excesso de Estoque (Dias)", min_value=30, max_value=120, value=60, step=5)
-    DIAS_MINIMOS_VALIDADE = st.number_input("Dias Mínimos de Validade CAF", min_value=0, max_value=180, value=0, step=15)
+
+    DIAS_ALVO = st.number_input(
+        "Dias Alvo de Estoque (Cobertura)",
+        min_value=15,
+        max_value=90,
+        value=45,
+        step=5,
+    )
+
+    LIMITE_EXCESSO_DIAS = st.number_input(
+        "Limite Excesso de Estoque (Dias)",
+        min_value=30,
+        max_value=120,
+        value=60,
+        step=5,
+    )
+
+    DIAS_MINIMOS_VALIDADE = st.number_input(
+        "Dias Mínimos de Validade CAF",
+        min_value=0,
+        max_value=180,
+        value=0,
+        step=15,
+    )
+
     st.markdown("---")
-    st.markdown(f"**Usuário:** {st.session_state.get('logged_in_user', 'Desconhecido')}")
+
+    st.markdown(
+        f"**Usuário:** "
+        f"{st.session_state.get('logged_in_user', 'Desconhecido')}"
+    )
+
+    st.markdown(
+        f"**Registro:** "
+        f"{st.session_state.get('logged_in_registro', '-')}"
+    )
+
     if st.button("Sair"):
         st.session_state.clear()
         st.rerun()
+
 
 col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("1. Posição de Estoque Logística (CAF)")
-    file_estoque = st.file_uploader("Selecione o arquivo de estoque CAF (CSV/Excel)", type=['csv', 'xls', 'xlsx'])
+
+    file_estoque = st.file_uploader(
+        "Selecione o arquivo de estoque CAF (CSV/Excel)",
+        type=["csv", "xls", "xlsx"],
+    )
 
 with col2:
     st.subheader("2. Planilhas de Pedido")
-    st.info("Pode enviar todos de uma vez (Medicamento, Saúde Mental, MMH). O sistema identificará pelo nome do arquivo.")
-    files_pedidos = st.file_uploader("Selecione as planilhas de pedido", type=['csv', 'xls', 'xlsx'], accept_multiple_files=True)
 
-if st.button("🚀 Processar Pedidos", use_container_width=True, type="primary"):
+    st.info(
+        "Pode enviar todos de uma vez (Medicamento, Saúde Mental, MMH). "
+        "O sistema identificará pelo nome do arquivo."
+    )
+
+    files_pedidos = st.file_uploader(
+        "Selecione as planilhas de pedido",
+        type=["csv", "xls", "xlsx"],
+        accept_multiple_files=True,
+    )
+
+
+if st.button(
+    "🚀 Processar Pedidos",
+    use_container_width=True,
+    type="primary",
+):
     if not file_estoque:
-        st.warning("⚠️ Por favor, faça o upload da Posição de Estoque Logística (CAF).")
+        st.warning(
+            "⚠️ Por favor, faça o upload da Posição de Estoque Logística (CAF)."
+        )
+
     elif not files_pedidos:
-        st.warning("⚠️ Por favor, faça o upload de pelo menos uma planilha de pedido.")
+        st.warning(
+            "⚠️ Por favor, faça o upload de pelo menos uma planilha de pedido."
+        )
+
     else:
-        with st.spinner("Processando dados e cruzando lotes..."):
+        with st.spinner(
+            "Processando dados e cruzando lotes..."
+        ):
             hoje = pd.Timestamp.today().normalize()
-            
+
+            usuario_analisador = st.session_state.get(
+                "logged_in_user",
+                "Desconhecido",
+            )
+
             # 1. Carregar Estoque CAF
-            df_estoque_caf = ler_arquivo_seguro(file_estoque, file_estoque.name)
+            df_estoque_caf = ler_arquivo_seguro(
+                file_estoque,
+                file_estoque.name,
+            )
 
             if df_estoque_caf is None:
                 st.stop()
 
-            df_estoque_caf = padronizar_colunas(df_estoque_caf)
-            
-            if "tipo_produto" not in df_estoque_caf.columns or "produto" not in df_estoque_caf.columns:
-                st.error("A planilha de estoque CAF deve conter 'tipo_produto' e 'produto'.")
-                st.stop()
-                
-            coluna_saldo_lote = "quantidade" if "quantidade" in df_estoque_caf.columns else "quantidade_estoque_lote"
-            if coluna_saldo_lote not in df_estoque_caf.columns:
-                st.error(f"Não encontrou coluna de quantidade de lote (esperado 'quantidade' ou 'quantidade_estoque_lote').")
-                st.stop()
-                
-            df_estoque_caf["saldo_lote_caf"] = numero_br_para_float(df_estoque_caf[coluna_saldo_lote])
-            df_estoque_caf["validade_dt"] = pd.to_datetime(df_estoque_caf.get("validade", pd.NaT), dayfirst=True, errors="coerce")
+            df_estoque_caf = padronizar_colunas(
+                df_estoque_caf
+            )
 
-            data_minima_validade = hoje + pd.Timedelta(days=DIAS_MINIMOS_VALIDADE)
+            if (
+                "tipo_produto" not in df_estoque_caf.columns
+                or "produto" not in df_estoque_caf.columns
+            ):
+                st.error(
+                    "A planilha de estoque CAF deve conter "
+                    "'tipo_produto' e 'produto'."
+                )
+                st.stop()
+
+            coluna_saldo_lote = (
+                "quantidade"
+                if "quantidade" in df_estoque_caf.columns
+                else "quantidade_estoque_lote"
+            )
+
+            if coluna_saldo_lote not in df_estoque_caf.columns:
+                st.error(
+                    "Não encontrou coluna de quantidade de lote "
+                    "(esperado 'quantidade' ou "
+                    "'quantidade_estoque_lote')."
+                )
+                st.stop()
+
+            df_estoque_caf["saldo_lote_caf"] = (
+                numero_br_para_float(
+                    df_estoque_caf[coluna_saldo_lote]
+                )
+            )
+
+            df_estoque_caf["validade_dt"] = pd.to_datetime(
+                df_estoque_caf.get(
+                    "validade",
+                    pd.NaT,
+                ),
+                dayfirst=True,
+                errors="coerce",
+            )
+
+            # Fator de embalagem: se não existir no estoque, usa 1.
+            if "fator_embalagem" not in df_estoque_caf.columns:
+                df_estoque_caf["fator_embalagem"] = 1
+
+            df_estoque_caf["fator_embalagem"] = (
+                pd.to_numeric(
+                    df_estoque_caf["fator_embalagem"],
+                    errors="coerce",
+                )
+                .fillna(1)
+                .clip(lower=1)
+            )
+
+            data_minima_validade = (
+                hoje
+                + pd.Timedelta(
+                    days=DIAS_MINIMOS_VALIDADE
+                )
+            )
+
             df_estoque_caf_valido = df_estoque_caf[
-                (df_estoque_caf["saldo_lote_caf"] > 0) &
-                (df_estoque_caf["validade_dt"].notna()) &
-                (df_estoque_caf["validade_dt"] >= data_minima_validade)
+                (df_estoque_caf["saldo_lote_caf"] > 0)
+                & (df_estoque_caf["validade_dt"].notna())
+                & (
+                    df_estoque_caf["validade_dt"]
+                    >= data_minima_validade
+                )
             ].copy()
 
             # Exclusão de pallets
-            pallets_para_excluir = [2026, 9071, 9072, 9075, 1592, 1498, 4040]
-            if 'palete' in df_estoque_caf_valido.columns:
-                df_estoque_caf_valido = df_estoque_caf_valido[
-                    ~df_estoque_caf_valido['palete'].astype(str).isin([str(p) for p in pallets_para_excluir])
-                ].copy()
+            pallets_para_excluir = [
+                2026,
+                9071,
+                9072,
+                9075,
+                1592,
+                1498,
+                4040,
+            ]
 
-            df_estoque_caf_disponivel = df_estoque_caf_valido.copy()
+            if "palete" in df_estoque_caf_valido.columns:
+                df_estoque_caf_valido = (
+                    df_estoque_caf_valido[
+                        ~df_estoque_caf_valido[
+                            "palete"
+                        ]
+                        .astype(str)
+                        .isin(
+                            [
+                                str(p)
+                                for p in pallets_para_excluir
+                            ]
+                        )
+                    ].copy()
+                )
+
+            df_estoque_caf_disponivel = (
+                df_estoque_caf_valido.copy()
+            )
+
             resultados_categorias = {}
             todas_lotes_fefo = []
-            
+
             # 2. Identificar categorias nos arquivos enviados
             arquivos_mapeados = {}
+
             for file_pedido in files_pedidos:
-                nome = normalizar_texto(file_pedido.name)
+                nome = normalizar_texto(
+                    file_pedido.name
+                )
+
                 for cat, keywords in CATEGORIAS_KEYWORDS.items():
-                    if any(kw in nome for kw in keywords):
-                        # Pega o último enviado caso envie repetido (ou pode juntar, mas manter simples)
-                        arquivos_mapeados[cat] = file_pedido
+                    if any(
+                        kw in nome
+                        for kw in keywords
+                    ):
+                        arquivos_mapeados[cat] = (
+                            file_pedido
+                        )
                         break
-            
+
             # 3. Processar na ordem
             for categoria in ORDEM_PROCESSAMENTO:
                 if categoria in arquivos_mapeados:
-                    file_pedido = arquivos_mapeados[categoria]
-                    df_pedido_bruto = ler_arquivo_seguro(file_pedido, file_pedido.name)
+                    file_pedido = arquivos_mapeados[
+                        categoria
+                    ]
+
+                    df_pedido_bruto = (
+                        ler_arquivo_seguro(
+                            file_pedido,
+                            file_pedido.name,
+                        )
+                    )
 
                     if df_pedido_bruto is None:
                         continue
 
-                    df_base_cat, df_lotes_cat, df_estoque_caf_disponivel = processar_categoria(
-                        df_pedido_bruto, df_estoque_caf_disponivel, hoje, DIAS_ALVO, LIMITE_EXCESSO_DIAS
+                    (
+                        df_base_cat,
+                        df_lotes_cat,
+                        df_estoque_caf_disponivel,
+                    ) = processar_categoria(
+                        df_pedido_bruto,
+                        df_estoque_caf_disponivel,
+                        hoje,
+                        DIAS_ALVO,
+                        LIMITE_EXCESSO_DIAS,
+                        usuario_analisador,
                     )
-                    
+
                     if df_base_cat is not None:
-                        resultados_categorias[categoria] = df_base_cat
+                        resultados_categorias[
+                            categoria
+                        ] = df_base_cat
+
                         if not df_lotes_cat.empty:
-                            df_lotes_cat["categoria"] = categoria
-                            todas_lotes_fefo.append(df_lotes_cat)
-            
-            df_lotes_fefo_total = pd.concat(todas_lotes_fefo, ignore_index=True) if todas_lotes_fefo else pd.DataFrame()
+                            df_lotes_cat[
+                                "categoria"
+                            ] = categoria
+
+                            todas_lotes_fefo.append(
+                                df_lotes_cat
+                            )
+
+            df_lotes_fefo_total = (
+                pd.concat(
+                    todas_lotes_fefo,
+                    ignore_index=True,
+                )
+                if todas_lotes_fefo
+                else pd.DataFrame()
+            )
 
             if not resultados_categorias:
-                st.error("Nenhuma planilha de pedido foi processada com sucesso. Verifique os nomes dos arquivos (devem conter 'medicamento', 'mmh' ou 'saude mental').")
+                st.error(
+                    "Nenhuma planilha de pedido foi processada "
+                    "com sucesso. Verifique os nomes dos arquivos "
+                    "(devem conter 'medicamento', 'mmh' ou "
+                    "'saude mental')."
+                )
+
             else:
-                st.success("✅ Processamento concluído com sucesso!")
-                
+                st.success(
+                    "✅ Processamento concluído com sucesso!"
+                )
+
+                st.info(
+                    f"👤 Análise realizada por: "
+                    f"**{usuario_analisador}** "
+                    f"({st.session_state.get('logged_in_registro', '-')})"
+                )
+
                 # Resumo visual em Tabs
-                abas = st.tabs(list(resultados_categorias.keys()) + (["Separação FEFO"] if not df_lotes_fefo_total.empty else []))
-                
-                for idx, (cat, df_cat) in enumerate(resultados_categorias.items()):
+                abas = st.tabs(
+                    list(resultados_categorias.keys())
+                    + (
+                        ["Separação FEFO"]
+                        if not df_lotes_fefo_total.empty
+                        else []
+                    )
+                )
+
+                for idx, (
+                    cat,
+                    df_cat,
+                ) in enumerate(
+                    resultados_categorias.items()
+                ):
                     with abas[idx]:
-                        itens_avaliados = len(df_cat)
-                        itens_enviar = (df_cat['qtd_recomendada_envio'] > 0).sum()
-                        
+                        itens_avaliados = len(
+                            df_cat
+                        )
+
+                        itens_enviar = (
+                            df_cat[
+                                "qtd_recomendada_envio"
+                            ]
+                            > 0
+                        ).sum()
+
                         col_m1, col_m2 = st.columns(2)
-                        col_m1.metric("Itens Avaliados", itens_avaliados)
-                        col_m2.metric("Itens para Envio Recomendado", itens_enviar)
-                        
-                        st.dataframe(df_cat[["unidade", "produto", "estoque", "cm", "qtd_recomendada_envio", "status_atendimento_caf"]].head(20), use_container_width=True)
-                
+
+                        col_m1.metric(
+                            "Itens Avaliados",
+                            itens_avaliados,
+                        )
+
+                        col_m2.metric(
+                            "Itens para Envio Recomendado",
+                            itens_enviar,
+                        )
+
+                        colunas_visualizacao = [
+                            "unidade",
+                            "produto",
+                            "programa_de_saude",
+                            "estoque",
+                            "cm",
+                            "fator_embalagem",
+                            "qtd_recomendada_envio",
+                            "qtd_autorizada_caf",
+                            "status_atendimento_caf",
+                            "Pedido analisado por",
+                        ]
+
+                        colunas_visualizacao = [
+                            c
+                            for c in colunas_visualizacao
+                            if c in df_cat.columns
+                        ]
+
+                        st.dataframe(
+                            df_cat[
+                                colunas_visualizacao
+                            ].head(20),
+                            use_container_width=True,
+                        )
+
                 if not df_lotes_fefo_total.empty:
                     with abas[-1]:
-                        st.metric("Total de Lotes Separados", len(df_lotes_fefo_total))
-                        st.dataframe(df_lotes_fefo_total[["unidade_solicitante", "produto", "lote", "validade", "qtd_separar_lote", "categoria"]], use_container_width=True)
+                        st.metric(
+                            "Total de Lotes Separados",
+                            len(df_lotes_fefo_total),
+                        )
 
-                # Gerar Excel em memória para Download
+                        colunas_fefo = [
+                            "unidade_solicitante",
+                            "produto",
+                            "programa_de_saude",
+                            "lote",
+                            "validade",
+                            "fator_embalagem",
+                            "qtd_separar_lote",
+                            "categoria",
+                            "Pedido analisado por",
+                        ]
+
+                        colunas_fefo = [
+                            c
+                            for c in colunas_fefo
+                            if c in df_lotes_fefo_total.columns
+                        ]
+
+                        st.dataframe(
+                            df_lotes_fefo_total[
+                                colunas_fefo
+                            ],
+                            use_container_width=True,
+                        )
+
+                # ====================================================
+                # GERAR EXCEL EM MEMÓRIA PARA DOWNLOAD
+                # ====================================================
                 output = io.BytesIO()
-                with pd.ExcelWriter(output, engine="openpyxl") as writer:
+
+                with pd.ExcelWriter(
+                    output,
+                    engine="openpyxl",
+                ) as writer:
+
                     for cat, df_cat in resultados_categorias.items():
-                        df_export = df_cat.drop(columns=["demanda_nao_atendida", "necessidade_bruta"], errors="ignore")
+                        df_export = df_cat.drop(
+                            columns=[
+                                "demanda_nao_atendida",
+                                "necessidade_bruta",
+                            ],
+                            errors="ignore",
+                        )
+
+                        # Garante que as duas colunas solicitadas
+                        # fiquem no final da planilha.
+                        colunas_finais = [
+                            c
+                            for c in [
+                                "Pedido analisado por",
+                                "programa_de_saude",
+                            ]
+                            if c in df_export.columns
+                        ]
+
+                        colunas_iniciais = [
+                            c
+                            for c in df_export.columns
+                            if c not in colunas_finais
+                        ]
+
+                        df_export = df_export[
+                            colunas_iniciais
+                            + colunas_finais
+                        ]
+
+                        # Nome amigável da coluna no Excel.
+                        if "programa_de_saude" in df_export.columns:
+                            df_export = df_export.rename(
+                                columns={
+                                    "programa_de_saude":
+                                        "PROGRAMA DE SAÚDE"
+                                }
+                            )
+
                         aba_nome = cat[:31]
-                        df_export.to_excel(writer, sheet_name=aba_nome, index=False)
+
+                        df_export.to_excel(
+                            writer,
+                            sheet_name=aba_nome,
+                            index=False,
+                        )
 
                     if not df_lotes_fefo_total.empty:
-                        df_lotes_fefo_total.to_excel(writer, sheet_name="Separacao_Lotes_FEFO", index=False)
-                        
+                        df_lotes_fefo_export = (
+                            df_lotes_fefo_total.copy()
+                        )
+
+                        if "programa_de_saude" in (
+                            df_lotes_fefo_export.columns
+                        ):
+                            df_lotes_fefo_export = (
+                                df_lotes_fefo_export.rename(
+                                    columns={
+                                        "programa_de_saude":
+                                            "PROGRAMA DE SAÚDE"
+                                    }
+                                )
+                            )
+
+                        df_lotes_fefo_export.to_excel(
+                            writer,
+                            sheet_name="Separacao_Lotes_FEFO",
+                            index=False,
+                        )
+
                 output.seek(0)
-                
+
                 st.markdown("---")
-                st.markdown("### 📥 Download do Resultado Final")
+                st.markdown(
+                    "### 📥 Download do Resultado Final"
+                )
+
                 st.download_button(
-                    label="Baixar Planilha de Recomendação Consolidada (Excel)",
+                    label=(
+                        "Baixar Planilha de Recomendação "
+                        "Consolidada (Excel)"
+                    ),
                     data=output,
-                    file_name=f"recomendacao_caf_{hoje.strftime('%Y%m%d')}.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    type="primary"
+                    file_name=(
+                        f"recomendacao_caf_"
+                        f"{hoje.strftime('%Y%m%d')}.xlsx"
+                    ),
+                    mime=(
+                        "application/vnd.openxmlformats-officedocument."
+                        "spreadsheetml.sheet"
+                    ),
+                    type="primary",
                 )
