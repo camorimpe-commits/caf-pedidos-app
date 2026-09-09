@@ -206,13 +206,34 @@ if not aceite:
 # ============================================================
 # PARÂMETROS E CONSTANTES
 # ============================================================
+# ============================================================
+# CATEGORIAS DOS ARQUIVOS DE PEDIDO
+# ============================================================
+
 CATEGORIAS_KEYWORDS = {
-    "Saude_Mental": ["saude mental", "saude_mental", "saudemental"],
-    "MMH": ["mmh"],
-    "Medicamento": ["Medicamento", "medicamento", "Medicamentos", "medicamentos"],
+    "Saude_Mental": [
+        "saude mental",
+        "saude_mental",
+        "saudemental",
+    ],
+
+    "MMH": [
+        "mmh",
+    ],
+
+    "Medicamento": [
+        "medicamento",
+        "medicamentos",
+    ],
 }
 
-ORDEM_PROCESSAMENTO = ["Saude_Mental", "MMH", "Medicamentos"]
+# A chave deve ser exatamente igual à utilizada acima.
+ORDEM_PROCESSAMENTO = [
+    "Saude_Mental",
+    "MMH",
+    "Medicamento",
+]
+
 DIAS_MES = 30
 
 # ============================================================
