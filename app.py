@@ -1258,3 +1258,76 @@ if st.button(
                     ),
                     type="primary",
                 )
+# ============================================================
+# 📊 ESTIMATIVA DE GANHO DE EFICIÊNCIA
+# ============================================================
+
+st.markdown("---")
+st.subheader("📊 Estimativa de Ganho de Eficiência")
+
+# ------------------------------------------------------------
+# PARÂMETROS DA ESTIMATIVA
+# ------------------------------------------------------------
+# Tempo médio estimado para realizar a análise manualmente
+# utilizando a planilha, sem a automação.
+TEMPO_MANUAL_MINUTOS = 35
+
+# Tempo estimado para o processamento automatizado pelo sistema.
+TEMPO_AUTOMATIZADO_SEGUNDOS = 2.5
+
+# ------------------------------------------------------------
+# CÁLCULO DA ESTIMATIVA
+# ------------------------------------------------------------
+
+# Converte o tempo manual para segundos
+tempo_manual_segundos = TEMPO_MANUAL_MINUTOS * 60
+
+# Calcula o percentual estimado de ganho de eficiência
+estimativa_ganho_eficiencia = (
+    (tempo_manual_segundos - TEMPO_AUTOMATIZADO_SEGUNDOS)
+    / tempo_manual_segundos
+) * 100
+
+# Calcula quantas vezes o processamento automatizado é mais rápido
+fator_velocidade = (
+    tempo_manual_segundos / TEMPO_AUTOMATIZADO_SEGUNDOS
+)
+
+# ------------------------------------------------------------
+# APRESENTAÇÃO DOS INDICADORES
+# ------------------------------------------------------------
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.metric(
+        label="Tempo estimado manual",
+        value=f"~{TEMPO_MANUAL_MINUTOS} min",
+        delta="Análise tradicional"
+    )
+
+with col2:
+    st.metric(
+        label="Tempo com automação",
+        value=f"{TEMPO_AUTOMATIZADO_SEGUNDOS:.1f} s",
+        delta="Processamento automatizado"
+    )
+
+with col3:
+    st.metric(
+        label="Ganho estimado de eficiência",
+        value=f"{estimativa_ganho_eficiencia:.1f}%",
+        delta=f"{fator_velocidade:.0f}x mais rápido"
+    )
+
+# ------------------------------------------------------------
+# TEXTO EXPLICATIVO
+# ------------------------------------------------------------
+
+st.info(
+    f"💡 **Estimativa:** considerando uma análise manual média de "
+    f"{TEMPO_MANUAL_MINUTOS} minutos e um processamento automatizado "
+    f"de aproximadamente {TEMPO_AUTOMATIZADO_SEGUNDOS:.1f} segundos, "
+    f"a automação representa uma estimativa de ganho de eficiência "
+    f"de **{estimativa_ganho_eficiencia:.1f}%**."
+)
