@@ -1273,7 +1273,7 @@ st.subheader("📊 Estimativa de Ganho de Eficiência")
 TEMPO_MANUAL_MINUTOS = 35
 
 # Tempo estimado para o processamento automatizado pelo sistema do login a exportação da planilha.
-TEMPO_AUTOMATIZADO_SEGUNDOS = 0.36
+TEMPO_AUTOMATIZADO_SEGUNDOS = 36.4
 
 # ------------------------------------------------------------
 # CÁLCULO DA ESTIMATIVA
