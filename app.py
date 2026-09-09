@@ -144,9 +144,9 @@ if not aceite:
 CATEGORIAS_KEYWORDS = {
     "Saude_Mental": ["saude mental", "saude_mental", "saudemental"],
     "MMH": ["mmh"],
-    "Clinico": ["clinico", "clínico"],
+    "Medicamento": ["Medicamento", "medicamento","Medicamentos","medicamentos"],
 }
-ORDEM_PROCESSAMENTO = ["Saude_Mental", "MMH", "Clinico"]
+ORDEM_PROCESSAMENTO = ["Saude_Mental", "MMH", "Medicamentos"]
 DIAS_MES = 30
 
 # ============================================================
@@ -583,7 +583,7 @@ if st.button("🚀 Processar Pedidos", use_container_width=True, type="primary")
             df_lotes_fefo_total = pd.concat(todas_lotes_fefo, ignore_index=True) if todas_lotes_fefo else pd.DataFrame()
 
             if not resultados_categorias:
-                st.error("Nenhuma planilha de pedido foi processada com sucesso. Verifique os nomes dos arquivos (devem conter 'clinico', 'mmh' ou 'saude mental').")
+                st.error("Nenhuma planilha de pedido foi processada com sucesso. Verifique os nomes dos arquivos (devem conter 'medicamento', 'mmh' ou 'saude mental').")
             else:
                 st.success("✅ Processamento concluído com sucesso!")
                 
