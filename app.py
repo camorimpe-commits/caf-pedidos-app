@@ -23,41 +23,21 @@ url_imagem_fundo = "[https://images.unsplash.com/photo-1576091160399-112ba8d25d1
 st.markdown(
     f"""
     <style>
-    /* 1. Esconde totalmente a Sidebar do Streamlit */
-    section[data-testid="stSidebar"], 
-    [data-testid="collapsedControl"],
-    [data-testid="stSidebarNav"] {{
-        display: none !important;
-        width: 0px !important;
-    }}
-
-    /* 2. Remove restrições de largura e paddings do layout do Streamlit */
-    .stAppViewContainer, 
-    .stMainBlockContainer, 
-    [data-testid="stMain"],
-    [data-testid="stHeader"],
-    .main .block-container {{
-        padding: 0 !important;
-        margin: 0 !important;
-        max-width: 100vw !important;
-        width: 100vw !important;
-        background: transparent !important;
-    }}
-
-    /* 3. Força a imagem a cobrir 100% do fundo de ponta a ponta */
-    .stApp {{
+      .stApp {{
         background-image:
-            linear-gradient(rgba(240, 244, 248, 0.40), rgba(240, 244, 248, 0.40)),
-            url("{url_imagem_fundo}") !important;
-        background-size: cover !important;
-        background-position: center center !important;
-        background-repeat: no-repeat !important;
-        background-attachment: fixed !important;
-        width: 100vw !important;
-        height: 100vh !important;
+            linear-gradient(rgba(240, 244, 248, 0.30), rgba(240, 244, 248, 0.30)),
+            url("{url_imagem_fundo}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
     }}
 
-    /* 4. Estilização dos campos de texto */
+    section[data-testid="stSidebar"] {{
+        background-color: rgba(255, 255, 255, 0.93) !important;
+        backdrop-filter: blur(10px);
+    }}
+
     .stTextInput > div > div > input {{
         background-color: #ffffff !important;
         border-radius: 8px;
@@ -66,29 +46,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-#     .stApp {{
-#         background-image:
-#             linear-gradient(rgba(240, 244, 248, 0.30), rgba(240, 244, 248, 0.30)),
-#             url("{url_imagem_fundo}");
-#         background-size: cover;
-#         background-position: center;
-#         background-repeat: no-repeat;
-#         background-attachment: fixed;
-#     }}
-
-#     section[data-testid="stSidebar"] {{
-#         background-color: rgba(255, 255, 255, 0.93) !important;
-#         backdrop-filter: blur(10px);
-#     }}
-
-#     .stTextInput > div > div > input {{
-#         background-color: #ffffff !important;
-#         border-radius: 8px;
-#     }}
-#     </style>
-#     """,
-#     unsafe_allow_html=True
-# )
 
 # ============================================================
 # AUTENTICAÇÃO INDIVIDUAL / AUDITORIA
