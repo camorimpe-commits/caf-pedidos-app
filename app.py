@@ -5,7 +5,6 @@ import io
 import re
 import unicodedata
 import time
-#import plotly.express as px
 
 # ============================================================
 # CONFIGURAÇÕES DA PÁGINA
@@ -191,15 +190,20 @@ if not aceite:
     st.stop()
 
 # ============================================================
-# PARÂMETROS E CONSTANTES
+# PARÂMETROS E CONSTANTES (MAPEAMENTO CORRIGIDO)
 # ============================================================
 CATEGORIAS_KEYWORDS = {
     "Saude_Mental": ["saude mental", "saude_mental", "saudemental"],
     "MMH": ["mmh"],
-    "Medicamento": ["Medicamento", "medicamento", "Medicamentos", "medicamentos"],
+    "Medicamento": [
+        "medicamento",
+        "medicamentos",
+        "compramedicamento",
+        "compramedicamentos",
+    ],
 }
 
-ORDEM_PROCESSAMENTO = ["Saude_Mental", "MMH", "Medicamentos"]
+ORDEM_PROCESSAMENTO = ["Saude_Mental", "MMH", "Medicamento"]
 DIAS_MES = 30
 
 # ============================================================
@@ -275,7 +279,6 @@ def limpar_codigo_produto(valor):
 
 
 def encontrar_coluna_programa(df):
-    """Localiza variações comuns da coluna Programa de Saúde."""
     candidatos = [
         "programa_de_saude",
         "programa_saude",
@@ -768,6 +771,9 @@ if st.button(
     use_container_width=True,
     type="primary",
 ):
+    # 1. Inicia o cronômetro do sistema
+    tempo_inicio = time.time()
+
     if not file_estoque:
         st.warning(
             "⚠️ Por favor, faça o upload da Posição de Estoque Logística (CAF)."
@@ -779,9 +785,6 @@ if st.button(
         )
 
     else:
-        # Início do cronômetro real do sistema
-        tempo_inicio_execucao = time.time()
-
         with st.spinner(
             "Processando dados e cruzando lotes..."
         ):
@@ -976,8 +979,13 @@ if st.button(
                 else pd.DataFrame()
             )
 
-            # Término da medição de tempo de processamento
-            tempo_decorrido = time.time() - tempo_inicio_execucao
+            # 2. Finaliza o cronômetro
+            tempo_execucao_segundos = time.time() - tempo_inicio
+
+            # 3. Conta dinamicamente a quantidade total de linhas analisadas
+            total_itens_processados = sum(
+                len(df) for df in resultados_categorias.values()
+            )
 
             if not resultados_categorias:
                 st.error(
@@ -998,6 +1006,7 @@ if st.button(
                     f"({st.session_state.get('logged_in_registro', '-')})"
                 )
 
+                # Resumo visual em Tabs
                 abas = st.tabs(
                     list(resultados_categorias.keys())
                     + (
@@ -1094,6 +1103,55 @@ if st.button(
                             ],
                             use_container_width=True,
                         )
+
+                # ====================================================
+                # CARD DINÂMICO DE GANHO DE EFICIÊNCIA
+                # ====================================================
+                st.markdown("---")
+                st.markdown("#### ⚡ Impacto e Ganho de Eficiência")
+
+                SEGUNDOS_POR_ITEM_MANUAL = 12
+                tempo_manual_segundos = max(
+                    60, total_itens_processados * SEGUNDOS_POR_ITEM_MANUAL
+                )
+                tempo_manual_minutos = tempo_manual_segundos / 60
+
+                tempo_auto_seg = max(0.01, tempo_execucao_segundos)
+                ganho_percentual = (
+                    (tempo_manual_segundos - tempo_auto_seg)
+                    / tempo_manual_segundos
+                ) * 100
+                fator_velocidade = tempo_manual_segundos / tempo_auto_seg
+
+                col_e1, col_e2, col_e3 = st.columns(3)
+
+                with col_e1:
+                    texto_manual = (
+                        f"~{tempo_manual_minutos / 60:.1f} Horas"
+                        if tempo_manual_minutos >= 60
+                        else f"~{tempo_manual_minutos:.0f} Minutos"
+                    )
+                    st.metric(
+                        label="Tempo Estimado Manual",
+                        value=texto_manual,
+                        delta=f"{total_itens_processados} itens analisados",
+                        delta_color="off",
+                    )
+
+                with col_e2:
+                    st.metric(
+                        label="Tempo com automação",
+                        value=f"{tempo_auto_seg:.1f} s",
+                        delta="Processamento automatizado",
+                    )
+
+                with col_e3:
+                    st.metric(
+                        label="Ganho estimado de eficiência",
+                        value=f"{ganho_percentual:.1f}%",
+                        delta=f"↑ {fator_velocidade:.0f}x mais rápido",
+                        delta_color="normal",
+                    )
 
                 # ====================================================
                 # GERAR EXCEL EM MEMÓRIA PARA DOWNLOAD
@@ -1196,99 +1254,3 @@ if st.button(
                     ),
                     type="primary",
                 )
-
-                # ============================================================
-                # BLOCO EDITÁVEL: DASHBOARDS, GANHO DE TEMPO E COMPARAÇÕES
-                # ============================================================
-                st.markdown("---")
-                st.subheader("📊 Indicadores de Desempenho e Distribuição")
-
-                # 1. CÁLCULO DE EFICIÊNCIA DINÂMICO BASEADO NO VOLUME DE LINHAS
-                st.markdown("#### ⚡ Impacto e Ganho de Eficiência")
-
-                total_itens_processados = sum(len(df) for df in resultados_categorias.values())
-                
-                # Estimativa manual: ~12 segundos por linha/item analisado manualmente
-                SEGUNDOS_POR_ITEM_MANUAL = 12 
-                tempo_manual_segundos = max(60, total_itens_processados * SEGUNDOS_POR_ITEM_MANUAL)
-                tempo_manual_minutos = tempo_manual_segundos / 60
-
-                tempo_auto_seg = max(0.01, tempo_decorrido)
-                ganho_percentual = ((tempo_manual_segundos - tempo_auto_seg) / tempo_manual_segundos) * 100
-                fator_velocidade = tempo_manual_segundos / tempo_auto_seg
-
-                col_e1, col_e2, col_e3 = st.columns(3)
-
-                with col_e1:
-                    texto_manual = (
-                        f"~{tempo_manual_minutos / 60:.1f} Horas"
-                        if tempo_manual_minutos >= 60
-                        else f"~{tempo_manual_minutos:.0f} Minutos"
-                    )
-                    st.metric(
-                        label="Tempo Estimado Manual",
-                        value=texto_manual,
-                        delta=f"{total_itens_processados} itens analisados",
-                        delta_color="off"
-                    )
-
-                with col_e2:
-                    st.metric(
-                        label="Tempo com automação",
-                        value=f"{tempo_auto_seg:.1f} s",
-                        delta="Processamento automatizado"
-                    )
-
-                with col_e3:
-                    st.metric(
-                        label="Ganho estimado de eficiência",
-                        value=f"{ganho_percentual:.1f}%",
-                        delta=f"↑ {fator_velocidade:.0f}x mais rápido",
-                        delta_color="normal"
-                    )
-
-                st.markdown("<br>", unsafe_allow_html=True)
-
-                # 2. GRÁFICO DINÂMICO: QUANTIDADE DE ITENS POR PROGRAMA DE SAÚDE
-                dfs_consolidados = [
-                    df_c for df_c in resultados_categorias.values()
-                    if "programa_de_saude" in df_c.columns
-                ]
-
-                if dfs_consolidados:
-                    df_total_programas = pd.concat(dfs_consolidados, ignore_index=True)
-
-                    df_grafico_programa = (
-                        df_total_programas.groupby("programa_de_saude", as_index=False)
-                        .agg(total_itens=("produto", "count"))
-                        .sort_values(by="total_itens", ascending=False)
-                    )
-
-                    fig_programa = px.bar(
-                        df_grafico_programa,
-                        x="programa_de_saude",
-                        y="total_itens",
-                        text="total_itens",
-                        title="Quantidade de Itens por Programa de Saúde",
-                        labels={
-                            "programa_de_saude": "Programa de Saúde",
-                            "total_itens": "Total de Itens"
-                        },
-                        color="total_itens",
-                        color_continuous_scale="Viridis"
-                    )
-
-                    fig_programa.update_traces(textposition="outside")
-                    fig_programa.update_layout(
-                        xaxis_tickangle=-30,
-                        height=450,
-                        margin=dict(l=20, r=20, t=50, b=100)
-                    )
-
-                    st.plotly_chart(fig_programa, use_container_width=True)
-                else:
-                    st.info("Nenhuma informação de Programa de Saúde encontrada para gerar o gráfico.")
-
-                # ============================================================
-                # FIM DO BLOCO EDITÁVEL
-                # ============================================================
