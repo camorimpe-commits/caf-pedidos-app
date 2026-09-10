@@ -5,7 +5,7 @@ import io
 import re
 import unicodedata
 import time
-import plotly.express as px
+#import plotly.express as px
 
 # ============================================================
 # CONFIGURAÇÕES DA PÁGINA
