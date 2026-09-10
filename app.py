@@ -23,29 +23,49 @@ url_imagem_fundo = "https://images.unsplash.com/photo-1586015555751-63bb77f4322a
 st.markdown(
     f"""
     <style>
-    .stApp {{
+      /* 1. Remove as margens e o fundo do container principal e do cabeçalho */
+    .stAppHeader, [data-testid="stHeader"] {
+        background-color: transparent !important;
+    }
+
+    [data-testid="stMainBlockContainer"], .main .block-container {
+        padding: 0 !important;
+        max-width: 100% !important;
+    }
+
+    /* 2. Aplica o fundo na raiz do documento (HTML e Body) para garantir cobertura total */
+    html, body, [data-testid="stAppViewContainer"] {
         background-image:
-            linear-gradient(rgba(240, 244, 248, 0.30), rgba(240, 244, 248, 0.30)),
+            linear-gradient(rgba(240, 244, 248, 0.40), rgba(240, 244, 248, 0.40)),
             url("{url_imagem_fundo}");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-    }}
+        background-size: cover !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+        background-attachment: fixed !important;
+    }
+#     .stApp {{
+#         background-image:
+#             linear-gradient(rgba(240, 244, 248, 0.30), rgba(240, 244, 248, 0.30)),
+#             url("{url_imagem_fundo}");
+#         background-size: cover;
+#         background-position: center;
+#         background-repeat: no-repeat;
+#         background-attachment: fixed;
+#     }}
 
-    section[data-testid="stSidebar"] {{
-        background-color: rgba(255, 255, 255, 0.93) !important;
-        backdrop-filter: blur(10px);
-    }}
+#     section[data-testid="stSidebar"] {{
+#         background-color: rgba(255, 255, 255, 0.93) !important;
+#         backdrop-filter: blur(10px);
+#     }}
 
-    .stTextInput > div > div > input {{
-        background-color: #ffffff !important;
-        border-radius: 8px;
-    }}
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+#     .stTextInput > div > div > input {{
+#         background-color: #ffffff !important;
+#         border-radius: 8px;
+#     }}
+#     </style>
+#     """,
+#     unsafe_allow_html=True
+# )
 
 # ============================================================
 # AUTENTICAÇÃO INDIVIDUAL / AUDITORIA
