@@ -23,18 +23,18 @@ url_imagem_fundo = "https://images.unsplash.com/photo-1586015555751-63bb77f4322a
 st.markdown(
     f"""
     <style>
-      /* 1. Remove as margens e o fundo do container principal e do cabeçalho */
-    .stAppHeader, [data-testid="stHeader"] {
+    /* 1. Remove as margens e o fundo do container principal e do cabeçalho */
+    .stAppHeader, [data-testid="stHeader"] {{
         background-color: transparent !important;
-    }
+    }}
 
-    [data-testid="stMainBlockContainer"], .main .block-container {
+    [data-testid="stMainBlockContainer"], .main .block-container {{
         padding: 0 !important;
         max-width: 100% !important;
-    }
+    }}
 
     /* 2. Aplica o fundo na raiz do documento (HTML e Body) para garantir cobertura total */
-    html, body, [data-testid="stAppViewContainer"] {
+    html, body, [data-testid="stAppViewContainer"] {{
         background-image:
             linear-gradient(rgba(240, 244, 248, 0.40), rgba(240, 244, 248, 0.40)),
             url("{url_imagem_fundo}");
@@ -42,8 +42,11 @@ st.markdown(
         background-position: center !important;
         background-repeat: no-repeat !important;
         background-attachment: fixed !important;
-    }
-  )
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 #     .stApp {{
 #         background-image:
 #             linear-gradient(rgba(240, 244, 248, 0.30), rgba(240, 244, 248, 0.30)),
