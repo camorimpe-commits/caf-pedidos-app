@@ -23,7 +23,12 @@ url_imagem_fundo = "https://images.unsplash.com/photo-1586015555751-63bb77f4322a
 st.markdown(
     f"""
     <style>
-    /* 1. Remove as margens e o fundo do container principal e do cabeçalho */
+    /* 1. Esconde completamente a Sidebar para liberar o espaço lateral */
+    section[data-testid="stSidebar"], [data-testid="collapsedControl"] {{
+        display: none !important;
+    }}
+
+    /* 2. Remove todas as margens e paddings do layout principal */
     .stAppHeader, [data-testid="stHeader"] {{
         background-color: transparent !important;
     }}
@@ -31,17 +36,24 @@ st.markdown(
     [data-testid="stMainBlockContainer"], .main .block-container {{
         padding: 0 !important;
         max-width: 100% !important;
+        margin: 0 !important;
     }}
 
-    /* 2. Aplica o fundo na raiz do documento (HTML e Body) para garantir cobertura total */
-    html, body, [data-testid="stAppViewContainer"] {{
+    /* 3. Aplica a imagem de fundo preenchendo toda a tela do navegador */
+    .stApp, html, body, [data-testid="stAppViewContainer"] {{
         background-image:
             linear-gradient(rgba(240, 244, 248, 0.40), rgba(240, 244, 248, 0.40)),
-            url("{url_imagem_fundo}");
+            url("{url_imagem_fundo}") !important;
         background-size: cover !important;
         background-position: center !important;
         background-repeat: no-repeat !important;
         background-attachment: fixed !important;
+    }}
+
+    /* 4. Estilização dos inputs de texto */
+    .stTextInput > div > div > input {{
+        background-color: #ffffff !important;
+        border-radius: 8px;
     }}
     </style>
     """,
