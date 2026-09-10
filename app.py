@@ -23,34 +23,41 @@ url_imagem_fundo = "https://images.unsplash.com/photo-1586015555751-63bb77f4322a
 st.markdown(
     f"""
     <style>
-    /* 1. Esconde completamente a Sidebar para liberar o espaço lateral */
-    section[data-testid="stSidebar"], [data-testid="collapsedControl"] {{
+    /* 1. Esconde totalmente a Sidebar do Streamlit */
+    section[data-testid="stSidebar"], 
+    [data-testid="collapsedControl"],
+    [data-testid="stSidebarNav"] {{
         display: none !important;
+        width: 0px !important;
     }}
 
-    /* 2. Remove todas as margens e paddings do layout principal */
-    .stAppHeader, [data-testid="stHeader"] {{
-        background-color: transparent !important;
-    }}
-
-    [data-testid="stMainBlockContainer"], .main .block-container {{
+    /* 2. Remove restrições de largura e paddings do layout do Streamlit */
+    .stAppViewContainer, 
+    .stMainBlockContainer, 
+    [data-testid="stMain"],
+    [data-testid="stHeader"],
+    .main .block-container {{
         padding: 0 !important;
-        max-width: 100% !important;
         margin: 0 !important;
+        max-width: 100vw !important;
+        width: 100vw !important;
+        background: transparent !important;
     }}
 
-    /* 3. Aplica a imagem de fundo preenchendo toda a tela do navegador */
-    .stApp, html, body, [data-testid="stAppViewContainer"] {{
+    /* 3. Força a imagem a cobrir 100% do fundo de ponta a ponta */
+    .stApp {{
         background-image:
             linear-gradient(rgba(240, 244, 248, 0.40), rgba(240, 244, 248, 0.40)),
             url("{url_imagem_fundo}") !important;
         background-size: cover !important;
-        background-position: center !important;
+        background-position: center center !important;
         background-repeat: no-repeat !important;
         background-attachment: fixed !important;
+        width: 100vw !important;
+        height: 100vh !important;
     }}
 
-    /* 4. Estilização dos inputs de texto */
+    /* 4. Estilização dos campos de texto */
     .stTextInput > div > div > input {{
         background-color: #ffffff !important;
         border-radius: 8px;
