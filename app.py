@@ -18,8 +18,8 @@ st.set_page_config(
 # ============================================================
 # ESTILO E DESIGN DE FUNDO (FARMÁCIA / ALMOXARIFADO)
 # ============================================================
-url_imagem_fundo = "https://images.unsplash.com/photo-1586015555751-63bb77f4322a?q=80&w=1920&auto=format&fit=crop"
-
+#url_imagem_fundo = "https://images.unsplash.com/photo-1586015555751-63bb77f4322a?q=80&w=1920&auto=format&fit=crop"
+url_imagem_fundo = "[https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=1920&auto=format&fit=crop](https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=1920&auto=format&fit=crop)"
 st.markdown(
     f"""
     <style>
