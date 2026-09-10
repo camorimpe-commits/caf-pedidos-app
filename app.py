@@ -4,6 +4,8 @@ import numpy as np
 import io
 import re
 import unicodedata
+import time
+import plotly.express as px
 
 # ============================================================
 # CONFIGURAÇÕES DA PÁGINA
@@ -49,20 +51,6 @@ st.markdown(
 # ============================================================
 # AUTENTICAÇÃO INDIVIDUAL / AUDITORIA
 # ============================================================
-# Os usuários e senhas NÃO ficam gravados no código.
-# Configure-os em Settings > Secrets no Streamlit Cloud.
-#
-# Exemplo de Secrets:
-#
-# [usuarios]
-# "16805" = "SENHA_GABRIELLE"
-# "4159" = "SENHA_CLAUDIA"
-# "9559" = "SENHA_ANDREZA"
-# "180681" = "SENHA_CRISTIANO"
-#
-# O campo de login usa CRF/ADM como identificador.
-# A senha deve ser definida individualmente por cada usuário.
-
 USUARIOS = {
     "16805": {
         "nome": "Gabrielle Moura",
@@ -118,7 +106,6 @@ def check_password():
             st.session_state["logged_in_registro"] = dados_usuario["registro"]
             st.session_state["logged_in_id"] = identificador
 
-            # Não manter a senha na sessão depois da autenticação.
             st.session_state.pop("login_senha", None)
         else:
             st.session_state["password_correct"] = False
@@ -206,34 +193,13 @@ if not aceite:
 # ============================================================
 # PARÂMETROS E CONSTANTES
 # ============================================================
-# ============================================================
-# CATEGORIAS DOS ARQUIVOS DE PEDIDO
-# ============================================================
-
 CATEGORIAS_KEYWORDS = {
-    "Saude_Mental": [
-        "saude mental",
-        "saude_mental",
-        "saudemental",
-    ],
-
-    "MMH": [
-        "mmh",
-    ],
-
-    "Medicamento": [
-        "medicamento",
-        "medicamentos",
-    ],
+    "Saude_Mental": ["saude mental", "saude_mental", "saudemental"],
+    "MMH": ["mmh"],
+    "Medicamento": ["Medicamento", "medicamento", "Medicamentos", "medicamentos"],
 }
 
-# A chave deve ser exatamente igual à utilizada acima.
-ORDEM_PROCESSAMENTO = [
-    "Saude_Mental",
-    "MMH",
-    "Medicamento",
-]
-
+ORDEM_PROCESSAMENTO = ["Saude_Mental", "MMH", "Medicamentos"]
 DIAS_MES = 30
 
 # ============================================================
@@ -310,7 +276,6 @@ def limpar_codigo_produto(valor):
 
 def encontrar_coluna_programa(df):
     """Localiza variações comuns da coluna Programa de Saúde."""
-
     candidatos = [
         "programa_de_saude",
         "programa_saude",
@@ -322,7 +287,6 @@ def encontrar_coluna_programa(df):
         if coluna in df.columns:
             return coluna
 
-    # Busca mais flexível para nomes como "Programa de Saúde"
     for coluna in df.columns:
         chave = limpar_texto_chave(coluna).replace(" ", "_")
         if chave in {
@@ -369,20 +333,6 @@ def calcular_recomendacao_e_qtd(row, DIAS_ALVO, LIMITE_EXCESSO_DIAS):
 
 
 def ajustar_qtd_por_fator_embalagem(qtd, fator, estoque_disponivel):
-    """
-    Ajusta a quantidade autorizada para múltiplos inteiros do fator de embalagem.
-
-    Exemplo:
-      fator 50 + qtd 17947 -> 17950
-      fator 100 + qtd 1535 -> 1600
-
-    Regra de segurança:
-      - nunca ultrapassa a quantidade recomendada;
-      - nunca ultrapassa o estoque CAF;
-      - quando o estoque não comporta um pacote completo, arredonda o disponível
-        para baixo para não autorizar quantidade inexistente.
-    """
-
     qtd = max(0, int(np.floor(float(qtd or 0))))
     estoque_disponivel = max(0, int(np.floor(float(estoque_disponivel or 0))))
 
@@ -397,14 +347,9 @@ def ajustar_qtd_por_fator_embalagem(qtd, fator, estoque_disponivel):
     if qtd <= 0 or estoque_disponivel <= 0:
         return 0
 
-    # Primeiro limita ao que realmente existe na CAF.
     qtd_base = min(qtd, estoque_disponivel)
-
-    # Arredonda para cima em relação à embalagem.
     qtd_arredondada = int(np.ceil(qtd_base / fator) * fator)
 
-    # Se o arredondamento ultrapassar o estoque disponível,
-    # só podem ser autorizadas embalagens completas dentro do estoque.
     if qtd_arredondada > estoque_disponivel:
         qtd_arredondada = int(np.floor(estoque_disponivel / fator) * fator)
 
@@ -448,7 +393,6 @@ def processar_categoria(
     if "demanda_nao_atendida" not in df.columns:
         df["demanda_nao_atendida"] = 0
 
-    # Programa de Saúde: preserva a informação da planilha de pedido.
     coluna_programa = encontrar_coluna_programa(df)
 
     if coluna_programa:
@@ -466,8 +410,6 @@ def processar_categoria(
     df["estoque"] = numero_br_para_float(df["estoque"])
     df["demanda_nao_atendida"] = numero_br_para_float(df["demanda_nao_atendida"])
 
-    # Mantém o agrupamento original, acrescentando Programa de Saúde quando
-    # a informação existir, evitando misturar programas diferentes.
     chaves_agrupamento = [
         "unidade",
         "tipo_produto",
@@ -597,9 +539,6 @@ def processar_categoria(
         .clip(lower=1)
     )
 
-    # ========================================================
-    # NOVA REGRA: AUTORIZAÇÃO EM MÚLTIPLOS DO FATOR DE EMBALAGEM
-    # ========================================================
     df_base["qtd_autorizada_caf"] = df_base.apply(
         lambda r: ajustar_qtd_por_fator_embalagem(
             r["qtd_recomendada_envio"],
@@ -614,7 +553,6 @@ def processar_categoria(
         axis=1,
     )
 
-    # Identificação do profissional responsável pela análise.
     df_base["Pedido analisado por"] = usuario_analisador
 
     linhas_lotes_fefo = []
@@ -841,6 +779,9 @@ if st.button(
         )
 
     else:
+        # Início do cronômetro real do sistema
+        tempo_inicio_execucao = time.time()
+
         with st.spinner(
             "Processando dados e cruzando lotes..."
         ):
@@ -903,7 +844,6 @@ if st.button(
                 errors="coerce",
             )
 
-            # Fator de embalagem: se não existir no estoque, usa 1.
             if "fator_embalagem" not in df_estoque_caf.columns:
                 df_estoque_caf["fator_embalagem"] = 1
 
@@ -932,7 +872,6 @@ if st.button(
                 )
             ].copy()
 
-            # Exclusão de pallets
             pallets_para_excluir = [
                 2026,
                 9071,
@@ -1037,6 +976,9 @@ if st.button(
                 else pd.DataFrame()
             )
 
+            # Término da medição de tempo de processamento
+            tempo_decorrido = time.time() - tempo_inicio_execucao
+
             if not resultados_categorias:
                 st.error(
                     "Nenhuma planilha de pedido foi processada "
@@ -1056,7 +998,6 @@ if st.button(
                     f"({st.session_state.get('logged_in_registro', '-')})"
                 )
 
-                # Resumo visual em Tabs
                 abas = st.tabs(
                     list(resultados_categorias.keys())
                     + (
@@ -1173,8 +1114,6 @@ if st.button(
                             errors="ignore",
                         )
 
-                        # Garante que as duas colunas solicitadas
-                        # fiquem no final da planilha.
                         colunas_finais = [
                             c
                             for c in [
@@ -1195,7 +1134,6 @@ if st.button(
                             + colunas_finais
                         ]
 
-                        # Nome amigável da coluna no Excel.
                         if "programa_de_saude" in df_export.columns:
                             df_export = df_export.rename(
                                 columns={
@@ -1258,76 +1196,99 @@ if st.button(
                     ),
                     type="primary",
                 )
-# ============================================================
-# 📊 ESTIMATIVA DE GANHO DE EFICIÊNCIA
-# ============================================================
 
-st.markdown("---")
-st.subheader("📊 Estimativa de Ganho de Eficiência")
+                # ============================================================
+                # BLOCO EDITÁVEL: DASHBOARDS, GANHO DE TEMPO E COMPARAÇÕES
+                # ============================================================
+                st.markdown("---")
+                st.subheader("📊 Indicadores de Desempenho e Distribuição")
 
-# ------------------------------------------------------------
-# PARÂMETROS DA ESTIMATIVA
-# ------------------------------------------------------------
-# Tempo médio estimado para realizar a análise manualmente
-# utilizando a planilha, sem a automação.
-TEMPO_MANUAL_MINUTOS = 35
+                # 1. CÁLCULO DE EFICIÊNCIA DINÂMICO BASEADO NO VOLUME DE LINHAS
+                st.markdown("#### ⚡ Impacto e Ganho de Eficiência")
 
-# Tempo estimado para o processamento automatizado pelo sistema do login a exportação da planilha.
-TEMPO_AUTOMATIZADO_SEGUNDOS = 36.4
+                total_itens_processados = sum(len(df) for df in resultados_categorias.values())
+                
+                # Estimativa manual: ~12 segundos por linha/item analisado manualmente
+                SEGUNDOS_POR_ITEM_MANUAL = 12 
+                tempo_manual_segundos = max(60, total_itens_processados * SEGUNDOS_POR_ITEM_MANUAL)
+                tempo_manual_minutos = tempo_manual_segundos / 60
 
-# ------------------------------------------------------------
-# CÁLCULO DA ESTIMATIVA
-# ------------------------------------------------------------
+                tempo_auto_seg = max(0.01, tempo_decorrido)
+                ganho_percentual = ((tempo_manual_segundos - tempo_auto_seg) / tempo_manual_segundos) * 100
+                fator_velocidade = tempo_manual_segundos / tempo_auto_seg
 
-# Converte o tempo manual para segundos
-tempo_manual_segundos = TEMPO_MANUAL_MINUTOS * 60
+                col_e1, col_e2, col_e3 = st.columns(3)
 
-# Calcula o percentual estimado de ganho de eficiência
-estimativa_ganho_eficiencia = (
-    (tempo_manual_segundos - TEMPO_AUTOMATIZADO_SEGUNDOS)
-    / tempo_manual_segundos
-) * 100
+                with col_e1:
+                    texto_manual = (
+                        f"~{tempo_manual_minutos / 60:.1f} Horas"
+                        if tempo_manual_minutos >= 60
+                        else f"~{tempo_manual_minutos:.0f} Minutos"
+                    )
+                    st.metric(
+                        label="Tempo Estimado Manual",
+                        value=texto_manual,
+                        delta=f"{total_itens_processados} itens analisados",
+                        delta_color="off"
+                    )
 
-# Calcula quantas vezes o processamento automatizado é mais rápido
-fator_velocidade = (
-    tempo_manual_segundos / TEMPO_AUTOMATIZADO_SEGUNDOS
-)
+                with col_e2:
+                    st.metric(
+                        label="Tempo com automação",
+                        value=f"{tempo_auto_seg:.1f} s",
+                        delta="Processamento automatizado"
+                    )
 
-# ------------------------------------------------------------
-# APRESENTAÇÃO DOS INDICADORES
-# ------------------------------------------------------------
+                with col_e3:
+                    st.metric(
+                        label="Ganho estimado de eficiência",
+                        value=f"{ganho_percentual:.1f}%",
+                        delta=f"↑ {fator_velocidade:.0f}x mais rápido",
+                        delta_color="normal"
+                    )
 
-col1, col2, col3 = st.columns(3)
+                st.markdown("<br>", unsafe_allow_html=True)
 
-with col1:
-    st.metric(
-        label="Tempo estimado manual",
-        value=f"~{TEMPO_MANUAL_MINUTOS} min",
-        delta="Análise tradicional"
-    )
+                # 2. GRÁFICO DINÂMICO: QUANTIDADE DE ITENS POR PROGRAMA DE SAÚDE
+                dfs_consolidados = [
+                    df_c for df_c in resultados_categorias.values()
+                    if "programa_de_saude" in df_c.columns
+                ]
 
-with col2:
-    st.metric(
-        label="Tempo com automação",
-        value=f"{TEMPO_AUTOMATIZADO_SEGUNDOS:.1f} s",
-        delta="Processamento automatizado"
-    )
+                if dfs_consolidados:
+                    df_total_programas = pd.concat(dfs_consolidados, ignore_index=True)
 
-with col3:
-    st.metric(
-        label="Ganho estimado de eficiência",
-        value=f"{estimativa_ganho_eficiencia:.1f}%",
-        delta=f"{fator_velocidade:.0f}x mais rápido"
-    )
+                    df_grafico_programa = (
+                        df_total_programas.groupby("programa_de_saude", as_index=False)
+                        .agg(total_itens=("produto", "count"))
+                        .sort_values(by="total_itens", ascending=False)
+                    )
 
-# ------------------------------------------------------------
-# TEXTO EXPLICATIVO
-# ------------------------------------------------------------
+                    fig_programa = px.bar(
+                        df_grafico_programa,
+                        x="programa_de_saude",
+                        y="total_itens",
+                        text="total_itens",
+                        title="Quantidade de Itens por Programa de Saúde",
+                        labels={
+                            "programa_de_saude": "Programa de Saúde",
+                            "total_itens": "Total de Itens"
+                        },
+                        color="total_itens",
+                        color_continuous_scale="Viridis"
+                    )
 
-st.info(
-    f"💡 **Estimativa:** considerando uma análise manual média de "
-    f"{TEMPO_MANUAL_MINUTOS} minutos e um processamento automatizado "
-    f"de aproximadamente {TEMPO_AUTOMATIZADO_SEGUNDOS:.1f} segundos, "
-    f"a automação representa uma estimativa de ganho de eficiência "
-    f"de **{estimativa_ganho_eficiencia:.1f}%**."
-)
+                    fig_programa.update_traces(textposition="outside")
+                    fig_programa.update_layout(
+                        xaxis_tickangle=-30,
+                        height=450,
+                        margin=dict(l=20, r=20, t=50, b=100)
+                    )
+
+                    st.plotly_chart(fig_programa, use_container_width=True)
+                else:
+                    st.info("Nenhuma informação de Programa de Saúde encontrada para gerar o gráfico.")
+
+                # ============================================================
+                # FIM DO BLOCO EDITÁVEL
+                # ============================================================
