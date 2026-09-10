@@ -43,6 +43,7 @@ st.markdown(
         background-repeat: no-repeat !important;
         background-attachment: fixed !important;
     }
+  )
 #     .stApp {{
 #         background-image:
 #             linear-gradient(rgba(240, 244, 248, 0.30), rgba(240, 244, 248, 0.30)),
