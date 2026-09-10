@@ -132,7 +132,7 @@ def check_password():
             st.text_input(
                 "CRF / ADM",
                 key="login_usuario",
-                placeholder="Ex.: 16805",
+                #placeholder="Ex.: 16805",
             )
 
             st.text_input(
